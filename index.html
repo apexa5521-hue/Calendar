@@ -197,7 +197,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:var(--bg);color:v
     <input class="gas-input" id="gasUrl" placeholder="ألصق رابط Apps Script هنا..." 
       oninput="saveGasUrl()">
     <button class="btn-sm" onclick="showSetup()">؟ كيف</button>
-    <button class="btn-sm" style="background:var(--teal)" onclick="syncNow()">↻ مزامنة</button>
+    <button class="btn-sm" style="background:var(--teal)" onclick="syncNow()" id="syncBtn">↻ الآن</button>
   </div>
 </div>
 
@@ -2067,9 +2067,9 @@ function updateSyncStatus(state, msg) {
 }
 
 // ══ SYNC: FETCH ALL FROM SHEETS ══════════════════════
-function syncNow() {
-  if (!gasUrl) { alert('أدخل رابط Apps Script أولاً'); return; }
-  updateSyncStatus('loading');
+function syncNow(silent) {
+  if (!gasUrl) { if (!silent) alert('أدخل رابط Apps Script أولاً'); return; }
+  if (!silent) updateSyncStatus('loading');
   // JSONP — only way to bypass CORS with Apps Script
   const cbName = '__gasCallback_' + Date.now();
   const script = document.createElement('script');
@@ -2095,7 +2095,8 @@ function syncNow() {
         });
       });
       renderAllCells();
-      updateSyncStatus('connected', '✓ تمت المزامنة — ' + (d.events||[]).length + ' حدث');
+      const now = new Date().toLocaleTimeString('ar-SA', {hour:'2-digit', minute:'2-digit'});
+      updateSyncStatus('connected', '✓ آخر مزامنة ' + now + ' — ' + (d.events||[]).length + ' حدث');
     } catch(e) {
       updateSyncStatus('error', '❌ خطأ في البيانات: ' + e.message);
     }
@@ -2241,7 +2242,8 @@ function doSaveEvent(date,name) {
   // Post to sheets
   if(gasUrl) {
     postToSheets({action:'save', id:ev.id, date, name:ev.name, color:ev.color, role:ev.role});
-    updateSyncStatus('connected','✓ تم الحفظ — المزامنة تلقائية');
+    updateSyncStatus('connected','✓ تم الحفظ');
+    setTimeout(() => syncNow(true), 2000);
   }
 }
 
@@ -2258,7 +2260,10 @@ async function doDelete(date,id) {
   customEvents[date]=(customEvents[date]||[]).filter(e=>e.id!==id);
   if(!customEvents[date].length) delete customEvents[date];
   renderCell(date); renderDayEvList();
-  if(gasUrl) postToSheets({action:'delete', id});
+  if(gasUrl) {
+    postToSheets({action:'delete', id});
+    setTimeout(() => syncNow(true), 2000);
+  }
 }
 
 // ══ PIN ═══════════════════════════════════════════════
@@ -2318,7 +2323,14 @@ cards.forEach(c=>new IntersectionObserver(entries=>{
 
 // ══ INIT ════════════════════════════════════════════
 loadGasUrl();
-if(gasUrl) syncNow();
+// Auto-sync on load
+if (gasUrl) syncNow();
+// Auto-sync every 60 seconds silently
+setInterval(() => { if (gasUrl) syncNow(true); }, 60000);
+// Auto-sync when tab becomes visible again (user switches back)
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && gasUrl) syncNow(true);
+});
 </script>
 </body>
 </html>
