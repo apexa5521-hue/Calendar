@@ -2,216 +2,238 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>تقويم أبكس كير 2026</title>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
 <style>
-/* ═══ BRAND PALETTE (from logo) ═══
-   Teal   : #3DBDAD
-   Purple : #7B52AB
-   Indigo : #4A4A9A
-   Pink   : #E84875  (accent only)
-   Black  : #1a1a1a
-*/
 :root{
-  --teal:#3DBDAD; --teal-d:#2a9e96; --teal-l:#e0f7f5;
-  --pur:#7B52AB;  --pur-d:#5c3d8f;  --pur-l:#ede5f7;
-  --ind:#4A4A9A;  --ind-d:#35357a;  --ind-l:#eaeaf5;
-  --pink:#E84875; --pink-l:#fde8ef;
-  --bdr:#dde8f0; --bg:#f4f6fb;
+  --teal:#3DBDAD;--teal-d:#2a9e96;--teal-l:#d6f4f0;
+  --pur:#7B52AB;--pur-d:#5c3d8f;--pur-l:#ede5f7;
+  --ind:#4A4A9A;--ind-d:#35357a;--ind-l:#e4e4f5;
+  --pink:#E84875;--bg:#f2f4f8;--bdr:#d8e4ed;
+  --header-h:56px;--nav-h:44px;
 }
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Tajawal',sans-serif;direction:rtl;background:var(--bg);color:#1a1a1a}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Tajawal',sans-serif;direction:rtl;
+  background:var(--bg);color:#1a1a1a;
+  padding-top:calc(var(--header-h) + var(--nav-h));
+  padding-bottom:24px;
+}
 
-/* ── TOP BAR ── */
-.topbar{
+/* ── STICKY TOP BAR ── */
+.top-bar{
+  position:fixed;top:0;left:0;right:0;
+  height:var(--header-h);
   background:white;
-  border-bottom:3px solid var(--teal);
-  padding:10px 20px;
+  border-bottom:2.5px solid var(--teal);
   display:flex;align-items:center;justify-content:space-between;
-  position:sticky;top:0;z-index:200;
-  box-shadow:0 2px 16px rgba(61,189,173,.15);
+  padding:0 14px;z-index:200;
+  box-shadow:0 2px 12px rgba(61,189,173,.12);
 }
-.topbar-logo{height:42px;width:auto;object-fit:contain}
-.topbar-mid{text-align:center;flex:1;padding:0 16px}
-.topbar-mid h1{
-  font-size:18px;font-weight:800;
-  background:linear-gradient(90deg,var(--teal) 0%,var(--pur) 100%);
+.tb-logo{height:34px;width:auto;object-fit:contain}
+.tb-mid h1{font-size:14px;font-weight:800;
+  background:linear-gradient(90deg,var(--teal),var(--pur));
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-  background-clip:text;
-}
-.topbar-mid p{font-size:11px;color:#666;margin-top:2px}
-.pbtn{
-  background:linear-gradient(135deg,var(--teal) 0%,var(--ind) 100%);
-  color:white;border:none;border-radius:8px;
-  padding:9px 18px;font-family:'Tajawal',sans-serif;font-size:13px;
-  font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;
-  box-shadow:0 2px 8px rgba(61,189,173,.3);transition:opacity .15s;
-}
-.pbtn:hover{opacity:.88}
+  background-clip:text;white-space:nowrap;}
+.tb-mid p{font-size:9px;color:#888;margin-top:1px}
+.tb-mid{text-align:center;flex:1;padding:0 8px}
 
-.legbar{
-  display:flex;gap:20px;justify-content:center;flex-wrap:wrap;
-  padding:7px 20px;background:white;border-bottom:1px solid var(--bdr);
+/* ── MONTH JUMP NAV ── */
+.month-nav{
+  position:fixed;top:var(--header-h);left:0;right:0;
+  height:var(--nav-h);background:white;
+  border-bottom:1px solid var(--bdr);
+  display:flex;align-items:center;overflow-x:auto;
+  padding:0 10px;gap:4px;z-index:190;
+  scrollbar-width:none;-webkit-overflow-scrolling:touch;
 }
-.leg{display:flex;align-items:center;gap:5px;font-size:11.5px;color:#444;font-weight:500}
+.month-nav::-webkit-scrollbar{display:none}
+.nav-m{
+  flex-shrink:0;
+  padding:5px 12px;border-radius:20px;
+  font-size:12px;font-weight:700;
+  color:var(--ind);text-decoration:none;
+  border:1.5px solid var(--ind-l);
+  background:var(--ind-l);
+  transition:all .15s;white-space:nowrap;
+}
+.nav-m:active{background:var(--ind);color:white}
+
+/* ── LEGEND BAR ── */
+.legend{
+  display:flex;gap:12px;justify-content:center;flex-wrap:wrap;
+  padding:10px 14px;margin:12px 12px 0;
+  background:white;border-radius:12px;
+  border:1px solid var(--bdr);
+}
+.leg{display:flex;align-items:center;gap:5px;font-size:11px;color:#555;font-weight:600}
 .ldot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
 
-/* ── YEAR GRID ── */
-.year-grid{
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:10px;padding:12px;
-  max-width:1380px;margin:0 auto;
-}
+/* ── MONTH CARDS ── */
+.months-wrap{padding:10px 12px 0;display:flex;flex-direction:column;gap:12px}
 
-/* ── MONTH CARD ── */
-.mc{
-  background:white;border-radius:10px;overflow:hidden;
+.month-card{
+  background:white;border-radius:14px;overflow:hidden;
   border:1px solid var(--bdr);
-  box-shadow:0 2px 12px rgba(74,74,154,.07);
+  box-shadow:0 2px 10px rgba(61,189,173,.07);
 }
 
 .mh{
-  padding:7px 10px 5px;
+  padding:10px 14px 8px;
   display:flex;align-items:center;justify-content:space-between;
   color:white;
 }
-.mh-ar{font-size:13px;font-weight:800;letter-spacing:.3px}
-.mh-sub{font-size:7px;opacity:.85;text-align:center;flex:1;padding:0 4px;line-height:1.3}
-.mh-en{font-size:17px;font-weight:800;opacity:.25;letter-spacing:1px;font-family:Georgia,serif}
+.mh-info{display:flex;flex-direction:column;gap:2px}
+.mh-ar{font-size:16px;font-weight:800;letter-spacing:.3px}
+.mh-hij{font-size:9px;opacity:.85;font-weight:500}
+.mh-en{font-size:28px;font-weight:800;opacity:.2;letter-spacing:2px;line-height:1}
 
-/* ── CALENDAR TABLE ── */
-.ctbl{width:100%;border-collapse:collapse;table-layout:fixed}
-
+/* ── SCROLLABLE TABLE ── */
+.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.ctbl{
+  width:100%;min-width:300px;
+  border-collapse:collapse;table-layout:fixed;
+}
 .ctbl th{
   color:white;text-align:center;
-  padding:3px 1px;font-size:7px;font-weight:700;
+  padding:6px 2px;font-size:10px;font-weight:700;
   border:1px solid rgba(255,255,255,.15);
+  position:sticky;top:0;
 }
 .thfs{background:rgba(0,0,0,.25)!important}
 
 .ctbl td{
   border:1px solid var(--bdr);vertical-align:top;
-  padding:2px 2.5px;background:white;
+  padding:4px 3px 3px;background:white;
+  min-height:52px;
 }
-.ctbl td:hover{background:#f5f3fc}
-.dc{}
-.emp{background:#f8f9fd}
-.wk{background:#f3f2fa}
+.emp{background:#f7f9fb!important}
+.wk{background:#f4f3fc!important}
 .hl{border-right:2.5px solid var(--pink)!important}
 
-.dt{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5px}
-.dn{font-size:10px;font-weight:700;color:#111;line-height:1}
-.wk .dn{color:#aaa}
-.dh{font-size:5.5px;color:#ccc;background:#f2f2f2;padding:0 2px;border-radius:2px;line-height:1.5}
+.dt{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:3px}
+.dn{font-size:13px;font-weight:800;color:#111;line-height:1}
+.wk .dn{color:#bbb}
+.dh{font-size:8px;color:#ccc;background:#f2f2f2;padding:0 3px;border-radius:3px;line-height:1.6}
 
-/* ── PILLS ── */
-.pills{display:flex;flex-direction:column;gap:1px}
+.pills{display:flex;flex-direction:column;gap:2px}
 .pill{
-  font-size:6px;padding:1px 3px;border-radius:2px;
+  font-size:8px;padding:2px 4px;border-radius:3px;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-  display:block;font-weight:600;line-height:1.4;cursor:default;
+  display:block;font-weight:700;line-height:1.3;cursor:pointer;
 }
-/* health = teal tones */
-.ph{background:var(--teal-l);color:#1a7a72}
-/* education = indigo tones */
+.ph{background:var(--teal-l);color:#0e6060}
 .pe{background:var(--ind-l);color:var(--ind-d)}
-/* national/holiday = purple tones */
 .pn{background:var(--pur-l);color:var(--pur-d)}
-.px{background:#efefef;color:#888;font-size:5.5px}
+.px{background:#efefef;color:#888;font-size:7.5px}
 
-/* ── TOOLTIP ── */
-[data-tip]{position:relative}
-[data-tip]:hover::after{
-  content:attr(data-tip);
-  position:absolute;
-  bottom:calc(100% + 6px);right:0;
-  background:#1a1a1a;color:#fff;
-  font-size:10.5px;font-weight:500;line-height:1.5;
-  padding:5px 9px;border-radius:7px;
-  white-space:normal;max-width:200px;text-align:right;
-  z-index:9999;pointer-events:none;
-  box-shadow:0 4px 14px rgba(0,0,0,.3);
-  font-family:'Tajawal',sans-serif;
+/* ── TOOLTIP MODAL (mobile-friendly) ── */
+.tip-overlay{
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,.5);z-index:500;
+  align-items:flex-end;justify-content:center;
 }
-[data-tip]:hover::before{
-  content:'';
-  position:absolute;
-  bottom:calc(100% + 2px);right:12px;
-  border:4px solid transparent;
-  border-top-color:#1a1a1a;
-  z-index:9999;
+.tip-overlay.show{display:flex}
+.tip-box{
+  background:white;border-radius:18px 18px 0 0;
+  padding:18px 20px 32px;width:100%;max-width:440px;
+  font-size:14px;font-weight:600;color:#1a1a1a;
+  line-height:1.6;text-align:center;
+  animation:slideUp .2s ease;
+}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.tip-close{
+  display:block;width:36px;height:4px;border-radius:2px;
+  background:#ddd;margin:0 auto 12px;
 }
 
 /* ── PRINT ── */
 @media print{
   @page{size:A3 landscape;margin:5mm}
-  .topbar,.legbar{display:none!important}
-  body{background:white}
-  .year-grid{
-    display:grid;grid-template-columns:repeat(4,1fr);
-    gap:5px;padding:0;max-width:none;
+  .top-bar,.month-nav,.legend,.tip-overlay{display:none!important}
+  body{padding:0;background:white}
+  .months-wrap{
+    display:grid!important;
+    grid-template-columns:repeat(4,1fr);
+    gap:4mm;padding:0;
     -webkit-print-color-adjust:exact;print-color-adjust:exact;
   }
-  .mc{border-radius:5px;box-shadow:none;page-break-inside:avoid;break-inside:avoid}
-  .mh{padding:3px 6px 2px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  .mh-ar{font-size:9px}
-  .mh-sub{font-size:5.5px}
-  .mh-en{font-size:12px}
-  .ctbl th{font-size:6px;padding:2px 1px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  .ctbl td{padding:1.5px 2px}
-  .dn{font-size:8px}
-  .dh{font-size:5px}
-  .pill{font-size:5px;padding:.5px 2px}
-  .ph,.pe,.pn,.px,.wk,.hl,.emp{-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  [data-tip]::after,[data-tip]::before{display:none!important}
+  .month-card{
+    border-radius:4pt;box-shadow:none;
+    page-break-inside:avoid;break-inside:avoid;
+    border:0.4pt solid #cdd8e8;
+  }
+  .mh{padding:3mm 3mm 2mm;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .mh-ar{font-size:8pt}.mh-hij{font-size:5pt}.mh-en{font-size:14pt}
+  .ctbl th{font-size:6pt;padding:1.5mm 1mm;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .ctbl td{padding:0.8mm 1mm;min-height:0}
+  .dn{font-size:7pt}.dh{font-size:4.5pt}
+  .pill{font-size:4.5pt;padding:0.4mm 1mm}
+  .emp,.wk,.hl,.ph,.pe,.pn,.px{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .tbl-wrap{overflow:visible}
 }
 </style>
 </head>
 <body>
 
-<header class="topbar">
-  <img class="topbar-logo" src="data:image/jpeg;base64,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2maHyW1IamNCZhoYgOxmFhsrVzhThMEVkHFOdBayQwwk81+LvVobgLcaUrESdGy3g45WRRuS71ensCWqwFfBSI7IhklIkmRQJRB1xJPO9Y61DCSqkVLAheMmQZLzUgZz7W4EiePNC9BNxGwACBG3+XYzsinO6wzQb1mlZEjPBe82xTEQgxcTmEWBuUfQhc2QJDz0ySodCRrKhT3afq1Y5Vl9qGLCBW13k+5oUjAWYxJm5kvrUgIylM7AA4OmRuRKGsFDoozgBp0l4he9SAtSzaM0Z0pba3KrdR4HpklfdC3zIcEUNjBZilBXJ2UElkWxhnqOSp22eYaywDqTFKiBAbgwXQUTEFx12JIIsGOmSxPLg5yK+X/fX//ZICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA=" alt="APEXCARE">
-  <div class="topbar-mid">
-    <h1>تقويم عيادات أبكس كير 2026 · 1447/1448هـ</h1>
-    <p>الأيام الصحية العالمية · إجازات التعليم · المناسبات الوطنية</p>
+<!-- STICKY HEADER -->
+<header class="top-bar">
+  <img class="tb-logo" src="data:image/jpeg;base64,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2maHyW1IamNCZhoYgOxmFhsrVzhThMEVkHFOdBayQwwk81+LvVobgLcaUrESdGy3g45WRRuS71ensCWqwFfBSI7IhklIkmRQJRB1xJPO9Y61DCSqkVLAheMmQZLzUgZz7W4EiePNC9BNxGwACBG3+XYzsinO6wzQb1mlZEjPBe82xTEQgxcTmEWBuUfQhc2QJDz0ySodCRrKhT3afq1Y5Vl9qGLCBW13k+5oUjAWYxJm5kvrUgIylM7AA4OmRuRKGsFDoozgBp0l4he9SAtSzaM0Z0pba3KrdR4HpklfdC3zIcEUNjBZilBXJ2UElkWxhnqOSp22eYaywDqTFKiBAbgwXQUTEFx12JIIsGOmSxPLg5yK+X/fX//ZICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA=" alt="APEXCARE">
+  <div class="tb-mid">
+    <h1>تقويم أبكس كير 2026</h1>
+    <p>1447 / 1448 هـ</p>
   </div>
-  <button class="pbtn" onclick="window.print()">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-      <polyline points="6 9 6 2 18 2 18 9"/>
-      <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
-      <rect x="6" y="14" width="12" height="8"/>
-    </svg>
-    طباعة / PDF
-  </button>
+  <button onclick="window.print()" style="
+    background:linear-gradient(135deg,var(--teal),var(--ind));
+    color:white;border:none;border-radius:8px;padding:7px 12px;
+    font-family:'Tajawal',sans-serif;font-size:11px;font-weight:700;
+    cursor:pointer;white-space:nowrap;flex-shrink:0;
+  ">طباعة</button>
 </header>
 
-<div class="legbar">
-  <span class="leg"><span class="ldot" style="background:#3DBDAD"></span>يوم صحي عالمي</span>
-  <span class="leg"><span class="ldot" style="background:#4A4A9A"></span>إجازة تعليم</span>
-  <span class="leg"><span class="ldot" style="background:#7B52AB"></span>إجازة رسمية / وطنية</span>
-  <span class="leg"><span class="ldot" style="background:#E84875"></span>إجازة رسمية (حد أيمن)</span>
+<!-- MONTH NAV -->
+<nav class="month-nav"><a class="nav-m" href="#m1">ينا</a><a class="nav-m" href="#m2">فبر</a><a class="nav-m" href="#m3">مار</a><a class="nav-m" href="#m4">أبر</a><a class="nav-m" href="#m5">ماي</a><a class="nav-m" href="#m6">يون</a><a class="nav-m" href="#m7">يول</a><a class="nav-m" href="#m8">أغس</a><a class="nav-m" href="#m9">سبت</a><a class="nav-m" href="#m10">أكت</a><a class="nav-m" href="#m11">نوف</a><a class="nav-m" href="#m12">ديس</a></nav>
+
+<!-- TOOLTIP MODAL -->
+<div class="tip-overlay" id="tipOverlay" onclick="closeTip()">
+  <div class="tip-box" onclick="event.stopPropagation()">
+    <span class="tip-close"></span>
+    <div id="tipText"></div>
+  </div>
 </div>
 
-<div class="year-grid">
-<div class="mc">
+<!-- LEGEND -->
+<div class="legend">
+  <span class="leg"><span class="ldot" style="background:var(--teal)"></span>يوم صحي</span>
+  <span class="leg"><span class="ldot" style="background:var(--ind)"></span>إجازة تعليم</span>
+  <span class="leg"><span class="ldot" style="background:var(--pur)"></span>إجازة رسمية</span>
+  <span class="leg"><span class="ldot" style="background:var(--pink)"></span>حد إجازة</span>
+</div>
+
+<!-- MONTHS -->
+<div class="months-wrap">
+<section class="month-card" id="m1">
   <div class="mh" style="background:linear-gradient(135deg,#3DBDAD 0%,#4A4A9A 100%)">
-    <div class="mh-ar">يناير</div>
-    <div class="mh-sub">جمادى الآخرة - رجب</div>
-    <div class="mh-en">JAN</div>
+    <div class="mh-info">
+      <span class="mh-ar">يناير 2026م</span>
+      <span class="mh-hij">جمادى الآخرة - رجب</span>
+    </div>
+    <span class="mh-en">01</span>
   </div>
-  <table class="ctbl">
-    <thead><tr>
-      <th style="background:#3a3a88">أحد</th>
-      <th style="background:#3a3a88">اثن</th>
-      <th style="background:#3a3a88">ثلا</th>
-      <th style="background:#3a3a88">أرب</th>
-      <th style="background:#3a3a88">خمي</th>
-      <th class="thfs">جمع</th>
-      <th class="thfs">سبت</th>
-    </tr></thead>
-    <tbody><tr style="height:20px"><td class="emp"></td><td class="emp"></td><td class="emp"></td><td class="emp"></td><td class="dc">
+  <div class="tbl-wrap">
+    <table class="ctbl">
+      <thead><tr>
+        <th style="background:#2a8f88">أحد</th>
+        <th style="background:#2a8f88">اثن</th>
+        <th style="background:#2a8f88">ثلا</th>
+        <th style="background:#2a8f88">أرب</th>
+        <th style="background:#2a8f88">خمي</th>
+        <th class="thfs">جمع</th>
+        <th class="thfs">سبت</th>
+      </tr></thead>
+      <tbody><tr><td class="emp"></td><td class="emp"></td><td class="emp"></td><td class="emp"></td><td class="dc">
 <div class="dt"><span class="dn">1</span><span class="dh">12</span></div>
 <div class="pills"></div>
 </td><td class="dc wk">
@@ -220,9 +242,9 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:var(--bg);color:#
 </td><td class="dc wk">
 <div class="dt"><span class="dn">3</span><span class="dh">14</span></div>
 <div class="pills"></div>
-</td></tr><tr style="height:20px"><td class="dc">
+</td></tr><tr><td class="dc">
 <div class="dt"><span class="dn">4</span><span class="dh">15</span></div>
-<div class="pills"><span class="pill ph" data-tip="اليوم العالمي للبرايل">اليوم العالمي للبرايل</span></div>
+<div class="pills"><span class="pill ph" data-full="اليوم العالمي للبرايل">اليوم العالمي …</span></div>
 </td><td class="dc">
 <div class="dt"><span class="dn">5</span><span class="dh">16</span></div>
 <div class="pills"></div>
@@ -237,11 +259,11 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:var(--bg);color:#
 <div class="pills"></div>
 </td><td class="dc wk">
 <div class="dt"><span class="dn">9</span><span class="dh">20</span></div>
-<div class="pills"><span class="pill pe" data-tip="انتهاء إجازة منتصف العام">انتهاء إجازة منتصف العام</span></div>
+<div class="pills"><span class="pill pe" data-full="انتهاء إجازة منتصف العام">انتهاء إجازة م…</span></div>
 </td><td class="dc wk">
 <div class="dt"><span class="dn">10</span><span class="dh">21</span></div>
 <div class="pills"></div>
-</td></tr><tr style="height:20px"><td class="dc">
+</td></tr><tr><td class="dc">
 <div class="dt"><span class="dn">11</span><span class="dh">22</span></div>
 <div class="pills"></div>
 </td><td class="dc">
@@ -262,7 +284,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:var(--bg);color:#
 </td><td class="dc wk">
 <div class="dt"><span class="dn">17</span><span class="dh">28</span></div>
 <div class="pills"></div>
-</td></tr><tr style="height:20px"><td class="dc">
+</td></tr><tr><td class="dc">
 <div class="dt"><span class="dn">18</span><span class="dh">29</span></div>
 <div class="pills"></div>
 </td><td class="dc">
@@ -282,8 +304,8 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:var(--bg);color:#
 <div class="pills"></div>
 </td><td class="dc wk">
 <div class="dt"><span class="dn">24</span><span class="dh">5</span></div>
-<div class="pills"><span class="pill ph" data-tip="اليوم الدولي للتعليم">اليوم الدولي للتعليم</span></div>
-</td></tr><tr style="height:20px"><td class="dc">
+<div class="pills"><span class="pill ph" data-full="اليوم الدولي للتعليم">اليوم الدولي ل…</span></div>
+</td></tr><tr><td class="dc">
 <div class="dt"><span class="dn">25</span><span class="dh">6</span></div>
 <div class="pills"></div>
 </td><td class="dc">
@@ -294,7 +316,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:var(--bg);color:#
 <div class="pills"></div>
 </td><td class="dc">
 <div class="dt"><span class="dn">28</span><span class="dh">9</span></div>
-<div class="pills"><span class="pill ph" data-tip="اليوم العالمي لمرض الجذام">اليوم العالمي لمرض الجذام</span></div>
+<div class="pills"><span class="pill ph" data-full="اليوم العالمي لمرض الجذام">اليوم العالمي …</span></div>
 </td><td class="dc">
 <div class="dt"><span class="dn">29</span><span class="dh">10</span></div>
 <div class="pills"></div>
@@ -305,27 +327,31 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:var(--bg);color:#
 <div class="dt"><span class="dn">31</span><span class="dh">12</span></div>
 <div class="pills"></div>
 </td></tr></tbody>
-  </table>
-</div>
-<div class="mc">
+    </table>
+  </div>
+</section>
+<section class="month-card" id="m2">
   <div class="mh" style="background:linear-gradient(135deg,#4A4A9A 0%,#7B52AB 100%)">
-    <div class="mh-ar">فبراير</div>
-    <div class="mh-sub">رجب - شعبان</div>
-    <div class="mh-en">FEB</div>
+    <div class="mh-info">
+      <span class="mh-ar">فبراير 2026م</span>
+      <span class="mh-hij">رجب - شعبان</span>
+    </div>
+    <span class="mh-en">02</span>
   </div>
-  <table class="ctbl">
-    <thead><tr>
-      <th style="background:#2a9e96">أحد</th>
-      <th style="background:#2a9e96">اثن</th>
-      <th style="background:#2a9e96">ثلا</th>
-      <th style="background:#2a9e96">أرب</th>
-      <th style="background:#2a9e96">خمي</th>
-      <th class="thfs">جمع</th>
-      <th class="thfs">سبت</th>
-    </tr></thead>
-    <tbody><tr style="height:24px"><td class="dc">
+  <div class="tbl-wrap">
+    <table class="ctbl">
+      <thead><tr>
+        <th style="background:#36368a">أحد</th>
+        <th style="background:#36368a">اثن</th>
+        <th style="background:#36368a">ثلا</th>
+        <th style="background:#36368a">أرب</th>
+        <th style="background:#36368a">خمي</th>
+        <th class="thfs">جمع</th>
+        <th class="thfs">سبت</th>
+      </tr></thead>
+      <tbody><tr><td class="dc">
 <div class="dt"><span class="dn">1</span><span class="dh">13</span></div>
-<div class="pills"><span class="pill ph" data-tip="اليوم الخليجي لحقوق المريض">اليوم الخليجي لحقوق المريض</span></div>
+<div class="pills"><span class="pill ph" data-full="اليوم الخليجي لحقوق المريض">اليوم الخليجي …</span></div>
 </td><td class="dc">
 <div class="dt"><span class="dn">2</span><span class="dh">14</span></div>
 <div class="pills"></div>
@@ -334,7 +360,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:var(--bg);color:#
 <div class="pills"></div>
 </td><td class="dc">
 <div class="dt"><span class="dn">4</span><span class="dh">16</span></div>
-<div class="pills"><span class="pill ph" data-tip="اليوم العالمي لمكافحة السرطان">اليوم العالمي لمكافحة السرطان</span></div>
+<div class="pills"><span class="pill ph" data-full="اليوم العالمي لمكافحة السرطان">اليوم العالمي …</span></div>
 </td><td class="dc">
 <div class="dt"><span class="dn">5</span><span class="dh">17</span></div>
 <div class="pills"></div>
@@ -344,7 +370,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:var(--bg);color:#
 </td><td class="dc wk">
 <div class="dt"><span class="dn">7</span><span class="dh">19</span></div>
 <div class="pills"></div>
-</td></tr><tr style="height:24px"><td class="dc">
+</td></tr><tr><td class="dc">
 <div class="dt"><span class="dn">8</span><span class="dh">20</span></div>
 <div class="pills"></div>
 </td><td class="dc">
@@ -355,7 +381,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:var(--bg);color:#
 <div class="pills"></div>
 </td><td class="dc">
 <div class="dt"><span class="dn">11</span><span class="dh">23</span></div>
-<div class="pills"><span class="pill ph" data-tip="اليوم العالمي للمرأة في العلوم">اليوم العالمي للمرأة في العلوم</span></div>
+<div class="pills"><span class="pill ph" data-full="اليوم العالمي للمرأة في العلوم">اليوم العالمي …</span></div>
 </td><td class="dc">
 <div class="dt"><span class="dn">12</span><span class="dh">24</span></div>
 <div class="pills"></div>
@@ -365,9 +391,9 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:var(--bg);color:#
 </td><td class="dc wk">
 <div class="dt"><span class="dn">14</span><span class="dh">26</span></div>
 <div class="pills"></div>
-</td></tr><tr style="height:24px"><td class="dc">
+</td></tr><tr><td class="dc">
 <div class="dt"><span class="dn">15</span><span class="dh">27</span></div>
-<div class="pills"><span class="pill ph" data-tip="اليوم العالمي لسرطان الأطفال">اليوم العالمي لسرطان الأطفال</span></div>
+<div class="pills"><span class="pill ph" data-full="اليوم العالمي لسرطان الأطفال">اليوم العالمي …</span></div>
 </td><td class="dc">
 <div class="dt"><span class="dn">16</span><span class="dh">28</span></div>
 <div class="pills"></div>
@@ -382,13 +408,13 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:var(--bg);color:#
 <div class="pills"></div>
 </td><td class="dc wk">
 <div class="dt"><span class="dn">20</span><span class="dh">2</span></div>
-<div class="pills"><span class="pill ph" data-tip="اليوم العالمي للعدالة الاجتماعية">اليوم العالمي للعدالة الاجتماعية</span></div>
+<div class="pills"><span class="pill ph" data-full="اليوم العالمي للعدالة الاجتماعية">اليوم العالمي …</span></div>
 </td><td class="dc wk">
 <div class="dt"><span class="dn">21</span><span class="dh">3</span></div>
-<div class="pills"><span class="pill ph" data-tip="اليوم العالمي للغة الأم">اليوم العالمي للغة الأم</span></div>
-</td></tr><tr style="height:24px"><td class="dc hl">
+<div class="pills"><span class="pill ph" data-full="اليوم العالمي للغة الأم">اليوم العالمي …</span></div>
+</td></tr><tr><td class="dc hl">
 <div class="dt"><span class="dn">22</span><span class="dh">4</span></div>
-<div class="pills"><span class="pill pn" data-tip="يوم التأسيس">يوم التأسيس</span><span class="pill pe" data-tip="إجازة يوم التأسيس">إجازة يوم التأسيس</span></div>
+<div class="pills"><span class="pill pn" data-full="يوم التأسيس — إجازة">يوم التأسيس — …</span><span class="pill pe" data-full="إجازة يوم التأسيس">إجازة يوم التأ…</span></div>
 </td><td class="dc">
 <div class="dt"><span class="dn">23</span><span class="dh">5</span></div>
 <div class="pills"></div>
@@ -406,27 +432,31 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:var(--bg);color:#
 <div class="pills"></div>
 </td><td class="dc wk">
 <div class="dt"><span class="dn">28</span><span class="dh">10</span></div>
-<div class="pills"><span class="pill ph" data-tip="اليوم العالمي للأمراض النادرة">اليوم العالمي للأمراض النادرة</span></div>
+<div class="pills"><span class="pill ph" data-full="اليوم العالمي للأمراض النادرة">اليوم العالمي …</span></div>
 </td></tr></tbody>
-  </table>
-</div>
-<div class="mc">
-  <div class="mh" style="background:linear-gradient(135deg,#3DBDAD 0%,#4A4A9A 100%)">
-    <div class="mh-ar">مارس</div>
-    <div class="mh-sub">شعبان - رمضان</div>
-    <div class="mh-en">MAR</div>
+    </table>
   </div>
-  <table class="ctbl">
-    <thead><tr>
-      <th style="background:#3a3a88">أحد</th>
-      <th style="background:#3a3a88">اثن</th>
-      <th style="background:#3a3a88">ثلا</th>
-      <th style="background:#3a3a88">أرب</th>
-      <th style="background:#3a3a88">خمي</th>
-      <th class="thfs">جمع</th>
-      <th class="thfs">سبت</th>
-    </tr></thead>
-    <tbody><tr style="height:20px"><td class="dc">
+</section>
+<section class="month-card" id="m3">
+  <div class="mh" style="background:linear-gradient(135deg,#3DBDAD 0%,#4A4A9A 100%)">
+    <div class="mh-info">
+      <span class="mh-ar">مارس 2026م</span>
+      <span class="mh-hij">شعبان - رمضان</span>
+    </div>
+    <span class="mh-en">03</span>
+  </div>
+  <div class="tbl-wrap">
+    <table class="ctbl">
+      <thead><tr>
+        <th style="background:#2a8f88">أحد</th>
+        <th style="background:#2a8f88">اثن</th>
+        <th style="background:#2a8f88">ثلا</th>
+        <th style="background:#2a8f88">أرب</th>
+        <th style="background:#2a8f88">خمي</th>
+        <th class="thfs">جمع</th>
+        <th class="thfs">سبت</th>
+      </tr></thead>
+      <tbody><tr><td class="dc">
 <div class="dt"><span class="dn">1</span><span class="dh">13</span></div>
 <div class="pills"></div>
 </td><td class="dc">
@@ -440,77 +470,77 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:var(--bg);color:#
 <div class="pills"></div>
 </td><td class="dc hl">
 <div class="dt"><span class="dn">5</span><span class="dh">17</span></div>
-<div class="pills"><span class="pill pn" data-tip="بداية إجازة عيد الفطر">بداية إجازة عيد الفطر</span><span class="pill pe" data-tip="إجازة عيد الفطر">إجازة عيد الفطر</span></div>
+<div class="pills"><span class="pill pn" data-full="بداية إجازة عيد الفطر">بداية إجازة عي…</span><span class="pill pe" data-full="إجازة عيد الفطر">إجازة عيد الفط…</span></div>
 </td><td class="dc wk hl">
 <div class="dt"><span class="dn">6</span><span class="dh">18</span></div>
-<div class="pills"><span class="pill pn" data-tip="إجازة عيد الفطر">إجازة عيد الفطر</span></div>
+<div class="pills"><span class="pill pn" data-full="إجازة عيد الفطر">إجازة عيد الفط…</span></div>
 </td><td class="dc wk hl">
 <div class="dt"><span class="dn">7</span><span class="dh">19</span></div>
-<div class="pills"><span class="pill pn" data-tip="إجازة عيد الفطر">إجازة عيد الفطر</span></div>
-</td></tr><tr style="height:20px"><td class="dc hl">
+<div class="pills"><span class="pill pn" data-full="إجازة عيد الفطر">إجازة عيد الفط…</span></div>
+</td></tr><tr><td class="dc hl">
 <div class="dt"><span class="dn">8</span><span class="dh">20</span></div>
-<div class="pills"><span class="pill ph" data-tip="اليوم العالمي للمرأة">اليوم العالمي للمرأة</span><span class="pill pn" data-tip="إجازة عيد الفطر">إجازة عيد الفطر</span></div>
+<div class="pills"><span class="pill ph" data-full="اليوم العالمي للمرأة">اليوم العالمي …</span><span class="pill pn" data-full="إجازة عيد الفطر">إجازة عيد الفط…</span></div>
 </td><td class="dc hl">
 <div class="dt"><span class="dn">9</span><span class="dh">21</span></div>
-<div class="pills"><span class="pill pn" data-tip="إجازة عيد الفطر">إجازة عيد الفطر</span></div>
+<div class="pills"><span class="pill pn" data-full="إجازة عيد الفطر">إجازة عيد الفط…</span></div>
 </td><td class="dc hl">
 <div class="dt"><span class="dn">10</span><span class="dh">22</span></div>
-<div class="pills"><span class="pill pn" data-tip="إجازة عيد الفطر">إجازة عيد الفطر</span></div>
+<div class="pills"><span class="pill pn" data-full="إجازة عيد الفطر">إجازة عيد الفط…</span></div>
 </td><td class="dc hl">
 <div class="dt"><span class="dn">11</span><span class="dh">23</span></div>
-<div class="pills"><span class="pill pn" data-tip="إجازة عيد الفطر">إجازة عيد الفطر</span></div>
+<div class="pills"><span class="pill pn" data-full="إجازة عيد الفطر">إجازة عيد الفط…</span></div>
 </td><td class="dc hl">
 <div class="dt"><span class="dn">12</span><span class="dh">24</span></div>
-<div class="pills"><span class="pill pn" data-tip="إجازة عيد الفطر">إجازة عيد الفطر</span></div>
+<div class="pills"><span class="pill pn" data-full="إجازة عيد الفطر">إجازة عيد الفط…</span></div>
 </td><td class="dc wk hl">
 <div class="dt"><span class="dn">13</span><span class="dh">25</span></div>
-<div class="pills"><span class="pill pn" data-tip="إجازة عيد الفطر">إجازة عيد الفطر</span></div>
+<div class="pills"><span class="pill pn" data-full="إجازة عيد الفطر">إجازة عيد الفط…</span></div>
 </td><td class="dc wk">
 <div class="dt"><span class="dn">14</span><span class="dh">26</span></div>
-<div class="pills"><span class="pill ph" data-tip="اليوم العالمي للكلى">اليوم العالمي للكلى</span></div>
-</td></tr><tr style="height:20px"><td class="dc hl">
+<div class="pills"><span class="pill ph" data-full="اليوم العالمي للكلى">اليوم العالمي …</span></div>
+</td></tr><tr><td class="dc hl">
 <div class="dt"><span class="dn">15</span><span class="dh">27</span></div>
-<div class="pills"><span class="pill ph" data-tip="اليوم العالمي للنوم">اليوم العالمي للنوم</span><span class="pill pn" data-tip="إجازة عيد الفطر">إجازة عيد الفطر</span></div>
+<div class="pills"><span class="pill ph" data-full="اليوم العالمي للنوم">اليوم العالمي …</span><span class="pill pn" data-full="إجازة عيد الفطر">إجازة عيد الفط…</span></div>
 </td><td class="dc hl">
 <div class="dt"><span class="dn">16</span><span class="dh">28</span></div>
-<div class="pills"><span class="pill pn" data-tip="إجازة عيد الفطر">إجازة عيد الفطر</span></div>
+<div class="pills"><span class="pill pn" data-full="إجازة عيد الفطر">إجازة عيد الفط…</span></div>
 </td><td class="dc hl">
 <div class="dt"><span class="dn">17</span><span class="dh">29</span></div>
-<div class="pills"><span class="pill pn" data-tip="إجازة عيد الفطر">إجازة عيد الفطر</span></div>
+<div class="pills"><span class="pill pn" data-full="إجازة عيد الفطر">إجازة عيد الفط…</span></div>
 </td><td class="dc hl">
 <div class="dt"><span class="dn">18</span><span class="dh">30</span></div>
-<div class="pills"><span class="pill pn" data-tip="إجازة عيد الفطر">إجازة عيد الفطر</span></div>
+<div class="pills"><span class="pill pn" data-full="إجازة عيد الفطر">إجازة عيد الفط…</span></div>
 </td><td class="dc hl">
 <div class="dt"><span class="dn">19</span><span class="dh">1</span></div>
-<div class="pills"><span class="pill pn" data-tip="إجازة عيد الفطر">إجازة عيد الفطر</span></div>
+<div class="pills"><span class="pill pn" data-full="إجازة عيد الفطر">إجازة عيد الفط…</span></div>
 </td><td class="dc wk hl">
 <div class="dt"><span class="dn">20</span><span class="dh">2</span></div>
-<div class="pills"><span class="pill ph" data-tip="اليوم العالمي لصحة الفم">اليوم العالمي لصحة الفم</span><span class="pill pn" data-tip="إجازة عيد الفطر">إجازة عيد الفطر</span></div>
+<div class="pills"><span class="pill ph" data-full="اليوم العالمي لصحة الفم">اليوم العالمي …</span><span class="pill pn" data-full="إجازة عيد الفطر">إجازة عيد الفط…</span></div>
 </td><td class="dc wk hl">
 <div class="dt"><span class="dn">21</span><span class="dh">3</span></div>
-<div class="pills"><span class="pill ph" data-tip="اليوم العالمي للسعادة">اليوم العالمي للسعادة</span><span class="pill pn" data-tip="إجازة عيد الفطر">إجازة عيد الفطر</span></div>
-</td></tr><tr style="height:20px"><td class="dc">
+<div class="pills"><span class="pill ph" data-full="اليوم العالمي للسعادة">اليوم العالمي …</span><span class="pill pn" data-full="إجازة عيد الفطر">إجازة عيد الفط…</span></div>
+</td></tr><tr><td class="dc">
 <div class="dt"><span class="dn">22</span><span class="dh">4</span></div>
-<div class="pills"><span class="pill ph" data-tip="اليوم العالمي للمياه">اليوم العالمي للمياه</span></div>
+<div class="pills"><span class="pill ph" data-full="اليوم العالمي للمياه">اليوم العالمي …</span></div>
 </td><td class="dc">
 <div class="dt"><span class="dn">23</span><span class="dh">5</span></div>
 <div class="pills"></div>
 </td><td class="dc">
 <div class="dt"><span class="dn">24</span><span class="dh">6</span></div>
-<div class="pills"><span class="pill ph" data-tip="اليوم العالمي للسل">اليوم العالمي للسل</span></div>
+<div class="pills"><span class="pill ph" data-full="اليوم العالمي للسل">اليوم العالمي …</span></div>
 </td><td class="dc">
 <div class="dt"><span class="dn">25</span><span class="dh">7</span></div>
 <div class="pills"></div>
 </td><td class="dc">
 <div class="dt"><span class="dn">26</span><span class="dh">8</span></div>
-<div class="pills"><span class="pill pe" data-tip="عودة الدراسة">عودة الدراسة</span></div>
+<div class="pills"><span class="pill pe" data-full="عودة الدراسة">عودة الدراسة</span></div>
 </td><td class="dc wk">
 <div class="dt"><span class="dn">27</span><span class="dh">9</span></div>
 <div class="pills"></div>
 </td><td class="dc wk">
 <div class="dt"><span class="dn">28</span><span class="dh">10</span></div>
 <div class="pills"></div>
-</td></tr><tr style="height:20px"><td class="dc">
+</td></tr><tr><td class="dc">
 <div class="dt"><span class="dn">29</span><span class="dh">11</span></div>
 <div class="pills"></div>
 </td><td class="dc">
@@ -520,37 +550,41 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:var(--bg);color:#
 <div class="dt"><span class="dn">31</span><span class="dh">13</span></div>
 <div class="pills"></div>
 </td><td class="emp"></td><td class="emp"></td><td class="emp"></td><td class="emp"></td></tr></tbody>
-  </table>
-</div>
-<div class="mc">
-  <div class="mh" style="background:linear-gradient(135deg,#4A4A9A 0%,#3DBDAD 100%)">
-    <div class="mh-ar">أبريل</div>
-    <div class="mh-sub">رمضان - شوال</div>
-    <div class="mh-en">APR</div>
+    </table>
   </div>
-  <table class="ctbl">
-    <thead><tr>
-      <th style="background:#2a9e96">أحد</th>
-      <th style="background:#2a9e96">اثن</th>
-      <th style="background:#2a9e96">ثلا</th>
-      <th style="background:#2a9e96">أرب</th>
-      <th style="background:#2a9e96">خمي</th>
-      <th class="thfs">جمع</th>
-      <th class="thfs">سبت</th>
-    </tr></thead>
-    <tbody><tr style="height:20px"><td class="emp"></td><td class="emp"></td><td class="emp"></td><td class="dc">
+</section>
+<section class="month-card" id="m4">
+  <div class="mh" style="background:linear-gradient(135deg,#4A4A9A 0%,#3DBDAD 100%)">
+    <div class="mh-info">
+      <span class="mh-ar">أبريل 2026م</span>
+      <span class="mh-hij">رمضان - شوال</span>
+    </div>
+    <span class="mh-en">04</span>
+  </div>
+  <div class="tbl-wrap">
+    <table class="ctbl">
+      <thead><tr>
+        <th style="background:#36368a">أحد</th>
+        <th style="background:#36368a">اثن</th>
+        <th style="background:#36368a">ثلا</th>
+        <th style="background:#36368a">أرب</th>
+        <th style="background:#36368a">خمي</th>
+        <th class="thfs">جمع</th>
+        <th class="thfs">سبت</th>
+      </tr></thead>
+      <tbody><tr><td class="emp"></td><td class="emp"></td><td class="emp"></td><td class="dc">
 <div class="dt"><span class="dn">1</span><span class="dh">12</span></div>
 <div class="pills"></div>
 </td><td class="dc">
 <div class="dt"><span class="dn">2</span><span class="dh">13</span></div>
-<div class="pills"><span class="pill ph" data-tip="اليوم العالمي للتوحد">اليوم العالمي للتوحد</span></div>
+<div class="pills"><span class="pill ph" data-full="اليوم العالمي للتوحد">اليوم العالمي …</span></div>
 </td><td class="dc wk">
 <div class="dt"><span class="dn">3</span><span class="dh">14</span></div>
 <div class="pills"></div>
 </td><td class="dc wk">
 <div class="dt"><span class="dn">4</span><span class="dh">15</span></div>
 <div class="pills"></div>
-</td></tr><tr style="height:20px"><td class="dc">
+</td></tr><tr><td class="dc">
 <div class="dt"><span class="dn">5</span><span class="dh">16</span></div>
 <div class="pills"></div>
 </td><td class="dc">
@@ -558,7 +592,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:var(--bg);color:#
 <div class="pills"></div>
 </td><td class="dc">
 <div class="dt"><span class="dn">7</span><span class="dh">18</span></div>
-<div class="pills"><span class="pill ph" data-tip="يوم الصحة العالمي WHO">يوم الصحة العالمي WHO</span></div>
+<div class="pills"><span class="pill ph" data-full="يوم الصحة العالمي WHO">يوم الصحة العا…</span></div>
 </td><td class="dc">
 <div class="dt"><span class="dn">8</span><span class="dh">19</span></div>
 <div class="pills"></div>
@@ -570,8 +604,8 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:var(--bg);color:#
 <div class="pills"></div>
 </td><td class="dc wk">
 <div class="dt"><span class="dn">11</span><span class="dh">22</span></div>
-<div class="pills"><span class="pill ph" data-tip="اليوم العالمي لشلل الرعاش">اليوم العالمي لشلل الرعاش</span></div>
-</td></tr><tr style="height:20px"><td class="dc">
+<div class="pills"><span class="pill ph" data-full="اليوم العالمي لشلل الرعاش">اليوم العالمي …</span></div>
+</td></tr><tr><td class="dc">
 <div class="dt"><span class="dn">12</span><span class="dh">23</span></div>
 <div class="pills"></div>
 </td><td class="dc">
@@ -592,7 +626,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:var(--bg);color:#
 </td><td class="dc wk">
 <div class="dt"><span class="dn">18</span><span class="dh">29</span></div>
 <div class="pills"></div>
-</td></tr><tr style="height:20px"><td class="dc">
+</td></tr><tr><td class="dc">
 <div class="dt"><span class="dn">19</span><span class="dh">30</span></div>
 <div class="pills"></div>
 </td><td class="dc">
@@ -600,7 +634,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:var(--bg);color:#
 <div class="pills"></div>
 </td><td class="dc">
 <div class="dt"><span class="dn">21</span><span class="dh">2</span></div>
-<div class="pills"><span class="pill ph" data-tip="اليوم العالمي للإبداع والابتكار">اليوم العالمي للإبداع والابتكار</span></div>
+<div class="pills"><span class="pill ph" data-full="اليوم العالمي للإبداع والابتكار">اليوم العالمي …</span></div>
 </td><td class="dc">
 <div class="dt"><span class="dn">22</span><span class="dh">3</span></div>
 <div class="pills"></div>
@@ -612,8 +646,8 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:var(--bg);color:#
 <div class="pills"></div>
 </td><td class="dc wk">
 <div class="dt"><span class="dn">25</span><span class="dh">6</span></div>
-<div class="pills"><span class="pill ph" data-tip="اليوم العالمي للملاريا">اليوم العالمي للملاريا</span></div>
-</td></tr><tr style="height:20px"><td class="dc">
+<div class="pills"><span class="pill ph" data-full="اليوم العالمي للملاريا">اليوم العالمي …</span></div>
+</td></tr><tr><td class="dc">
 <div class="dt"><span class="dn">26</span><span class="dh">7</span></div>
 <div class="pills"></div>
 </td><td class="dc">
@@ -621,7 +655,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:var(--bg);color:#
 <div class="pills"></div>
 </td><td class="dc">
 <div class="dt"><span class="dn">28</span><span class="dh">9</span></div>
-<div class="pills"><span class="pill ph" data-tip="اليوم العالمي لصحة العمل">اليوم العالمي لصحة العمل</span></div>
+<div class="pills"><span class="pill ph" data-full="اليوم العالمي لصحة العمل">اليوم العالمي …</span></div>
 </td><td class="dc">
 <div class="dt"><span class="dn">29</span><span class="dh">10</span></div>
 <div class="pills"></div>
@@ -629,31 +663,35 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:var(--bg);color:#
 <div class="dt"><span class="dn">30</span><span class="dh">11</span></div>
 <div class="pills"></div>
 </td><td class="emp"></td><td class="emp"></td></tr></tbody>
-  </table>
-</div>
-<div class="mc">
-  <div class="mh" style="background:linear-gradient(135deg,#7B52AB 0%,#3DBDAD 100%)">
-    <div class="mh-ar">مايو</div>
-    <div class="mh-sub">شوال - ذو القعدة</div>
-    <div class="mh-en">MAY</div>
+    </table>
   </div>
-  <table class="ctbl">
-    <thead><tr>
-      <th style="background:#3a3a88">أحد</th>
-      <th style="background:#3a3a88">اثن</th>
-      <th style="background:#3a3a88">ثلا</th>
-      <th style="background:#3a3a88">أرب</th>
-      <th style="background:#3a3a88">خمي</th>
-      <th class="thfs">جمع</th>
-      <th class="thfs">سبت</th>
-    </tr></thead>
-    <tbody><tr style="height:17px"><td class="emp"></td><td class="emp"></td><td class="emp"></td><td class="emp"></td><td class="emp"></td><td class="dc wk">
+</section>
+<section class="month-card" id="m5">
+  <div class="mh" style="background:linear-gradient(135deg,#7B52AB 0%,#3DBDAD 100%)">
+    <div class="mh-info">
+      <span class="mh-ar">مايو 2026م</span>
+      <span class="mh-hij">شوال - ذو القعدة</span>
+    </div>
+    <span class="mh-en">05</span>
+  </div>
+  <div class="tbl-wrap">
+    <table class="ctbl">
+      <thead><tr>
+        <th style="background:#2a8f88">أحد</th>
+        <th style="background:#2a8f88">اثن</th>
+        <th style="background:#2a8f88">ثلا</th>
+        <th style="background:#2a8f88">أرب</th>
+        <th style="background:#2a8f88">خمي</th>
+        <th class="thfs">جمع</th>
+        <th class="thfs">سبت</th>
+      </tr></thead>
+      <tbody><tr><td class="emp"></td><td class="emp"></td><td class="emp"></td><td class="emp"></td><td class="emp"></td><td class="dc wk">
 <div class="dt"><span class="dn">1</span><span class="dh">12</span></div>
 <div class="pills"></div>
 </td><td class="dc wk">
 <div class="dt"><span class="dn">2</span><span class="dh">13</span></div>
 <div class="pills"></div>
-</td></tr><tr style="height:17px"><td class="dc">
+</td></tr><tr><td class="dc">
 <div class="dt"><span class="dn">3</span><span class="dh">14</span></div>
 <div class="pills"></div>
 </td><td class="dc">
@@ -674,7 +712,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:var(--bg);color:#
 </td><td class="dc wk">
 <div class="dt"><span class="dn">9</span><span class="dh">20</span></div>
 <div class="pills"></div>
-</td></tr><tr style="height:17px"><td class="dc">
+</td></tr><tr><td class="dc">
 <div class="dt"><span class="dn">10</span><span class="dh">21</span></div>
 <div class="pills"></div>
 </td><td class="dc">
@@ -682,7 +720,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:var(--bg);color:#
 <div class="pills"></div>
 </td><td class="dc">
 <div class="dt"><span class="dn">12</span><span class="dh">23</span></div>
-<div class="pills"><span class="pill ph" data-tip="اليوم العالمي للتمريض">اليوم العالمي للتمريض</span></div>
+<div class="pills"><span class="pill ph" data-full="اليوم العالمي للتمريض">اليوم العالمي …</span></div>
 </td><td class="dc">
 <div class="dt"><span class="dn">13</span><span class="dh">24</span></div>
 <div class="pills"></div>
@@ -695,9 +733,9 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:var(--bg);color:#
 </td><td class="dc wk">
 <div class="dt"><span class="dn">16</span><span class="dh">27</span></div>
 <div class="pills"></div>
-</td></tr><tr style="height:17px"><td class="dc">
+</td></tr><tr><td class="dc">
 <div class="dt"><span class="dn">17</span><span class="dh">28</span></div>
-<div class="pills"><span class="pill ph" data-tip="اليوم العالمي للاتصالات">اليوم العالمي للاتصالات</span></div>
+<div class="pills"><span class="pill ph" data-full="اليوم العالمي للاتصالات">اليوم العالمي …</span></div>
 </td><td class="dc">
 <div class="dt"><span class="dn">18</span><span class="dh">29</span></div>
 <div class="pills"></div>
@@ -712,56 +750,60 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:var(--bg);color:#
 <div class="pills"></div>
 </td><td class="dc wk hl">
 <div class="dt"><span class="dn">22</span><span class="dh">3</span></div>
-<div class="pills"><span class="pill pn" data-tip="بداية إجازة عيد الأضحى">بداية إجازة عيد الأضحى</span><span class="pill pe" data-tip="إجازة عيد الأضحى">إجازة عيد الأضحى</span></div>
+<div class="pills"><span class="pill pn" data-full="بداية إجازة عيد الأضحى">بداية إجازة عي…</span><span class="pill pe" data-full="إجازة عيد الأضحى">إجازة عيد الأض…</span></div>
 </td><td class="dc wk hl">
 <div class="dt"><span class="dn">23</span><span class="dh">4</span></div>
-<div class="pills"><span class="pill pn" data-tip="إجازة عيد الأضحى">إجازة عيد الأضحى</span></div>
-</td></tr><tr style="height:17px"><td class="dc hl">
+<div class="pills"><span class="pill pn" data-full="إجازة عيد الأضحى">إجازة عيد الأض…</span></div>
+</td></tr><tr><td class="dc hl">
 <div class="dt"><span class="dn">24</span><span class="dh">5</span></div>
-<div class="pills"><span class="pill pn" data-tip="إجازة عيد الأضحى">إجازة عيد الأضحى</span></div>
+<div class="pills"><span class="pill pn" data-full="إجازة عيد الأضحى">إجازة عيد الأض…</span></div>
 </td><td class="dc hl">
 <div class="dt"><span class="dn">25</span><span class="dh">6</span></div>
-<div class="pills"><span class="pill pn" data-tip="إجازة عيد الأضحى">إجازة عيد الأضحى</span></div>
+<div class="pills"><span class="pill pn" data-full="إجازة عيد الأضحى">إجازة عيد الأض…</span></div>
 </td><td class="dc hl">
 <div class="dt"><span class="dn">26</span><span class="dh">7</span></div>
-<div class="pills"><span class="pill pn" data-tip="إجازة عيد الأضحى">إجازة عيد الأضحى</span></div>
+<div class="pills"><span class="pill pn" data-full="إجازة عيد الأضحى">إجازة عيد الأض…</span></div>
 </td><td class="dc hl">
 <div class="dt"><span class="dn">27</span><span class="dh">8</span></div>
-<div class="pills"><span class="pill pn" data-tip="إجازة عيد الأضحى">إجازة عيد الأضحى</span></div>
+<div class="pills"><span class="pill pn" data-full="إجازة عيد الأضحى">إجازة عيد الأض…</span></div>
 </td><td class="dc hl">
 <div class="dt"><span class="dn">28</span><span class="dh">9</span></div>
-<div class="pills"><span class="pill ph" data-tip="اليوم العالمي لصحة المرأة">اليوم العالمي لصحة المرأة</span><span class="pill pn" data-tip="إجازة عيد الأضحى">إجازة عيد الأضحى</span></div>
+<div class="pills"><span class="pill ph" data-full="اليوم العالمي لصحة المرأة">اليوم العالمي …</span><span class="pill pn" data-full="إجازة عيد الأضحى">إجازة عيد الأض…</span></div>
 </td><td class="dc wk hl">
 <div class="dt"><span class="dn">29</span><span class="dh">10</span></div>
-<div class="pills"><span class="pill pn" data-tip="إجازة عيد الأضحى">إجازة عيد الأضحى</span></div>
+<div class="pills"><span class="pill pn" data-full="إجازة عيد الأضحى">إجازة عيد الأض…</span></div>
 </td><td class="dc wk hl">
 <div class="dt"><span class="dn">30</span><span class="dh">11</span></div>
-<div class="pills"><span class="pill pn" data-tip="إجازة عيد الأضحى">إجازة عيد الأضحى</span></div>
-</td></tr><tr style="height:17px"><td class="dc hl">
+<div class="pills"><span class="pill pn" data-full="إجازة عيد الأضحى">إجازة عيد الأض…</span></div>
+</td></tr><tr><td class="dc hl">
 <div class="dt"><span class="dn">31</span><span class="dh">12</span></div>
-<div class="pills"><span class="pill ph" data-tip="الامتناع عن التبغ">الامتناع عن التبغ</span><span class="pill pn" data-tip="إجازة عيد الأضحى">إجازة عيد الأضحى</span></div>
+<div class="pills"><span class="pill ph" data-full="الامتناع عن التبغ">الامتناع عن ال…</span><span class="pill pn" data-full="إجازة عيد الأضحى">إجازة عيد الأض…</span></div>
 </td><td class="emp"></td><td class="emp"></td><td class="emp"></td><td class="emp"></td><td class="emp"></td><td class="emp"></td></tr></tbody>
-  </table>
-</div>
-<div class="mc">
-  <div class="mh" style="background:linear-gradient(135deg,#3DBDAD 0%,#7B52AB 100%)">
-    <div class="mh-ar">يونيو</div>
-    <div class="mh-sub">ذو القعدة - ذو الحجة</div>
-    <div class="mh-en">JUN</div>
+    </table>
   </div>
-  <table class="ctbl">
-    <thead><tr>
-      <th style="background:#2a9e96">أحد</th>
-      <th style="background:#2a9e96">اثن</th>
-      <th style="background:#2a9e96">ثلا</th>
-      <th style="background:#2a9e96">أرب</th>
-      <th style="background:#2a9e96">خمي</th>
-      <th class="thfs">جمع</th>
-      <th class="thfs">سبت</th>
-    </tr></thead>
-    <tbody><tr style="height:20px"><td class="emp"></td><td class="dc hl">
+</section>
+<section class="month-card" id="m6">
+  <div class="mh" style="background:linear-gradient(135deg,#3DBDAD 0%,#7B52AB 100%)">
+    <div class="mh-info">
+      <span class="mh-ar">يونيو 2026م</span>
+      <span class="mh-hij">ذو القعدة - ذو الحجة</span>
+    </div>
+    <span class="mh-en">06</span>
+  </div>
+  <div class="tbl-wrap">
+    <table class="ctbl">
+      <thead><tr>
+        <th style="background:#36368a">أحد</th>
+        <th style="background:#36368a">اثن</th>
+        <th style="background:#36368a">ثلا</th>
+        <th style="background:#36368a">أرب</th>
+        <th style="background:#36368a">خمي</th>
+        <th class="thfs">جمع</th>
+        <th class="thfs">سبت</th>
+      </tr></thead>
+      <tbody><tr><td class="emp"></td><td class="dc hl">
 <div class="dt"><span class="dn">1</span><span class="dh">11</span></div>
-<div class="pills"><span class="pill pn" data-tip="نهاية إجازة الأضحى">نهاية إجازة الأضحى</span></div>
+<div class="pills"><span class="pill pn" data-full="نهاية إجازة الأضحى">نهاية إجازة ال…</span></div>
 </td><td class="dc">
 <div class="dt"><span class="dn">2</span><span class="dh">12</span></div>
 <div class="pills"></div>
@@ -773,16 +815,16 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:var(--bg);color:#
 <div class="pills"></div>
 </td><td class="dc wk">
 <div class="dt"><span class="dn">5</span><span class="dh">15</span></div>
-<div class="pills"><span class="pill ph" data-tip="اليوم العالمي للبيئة">اليوم العالمي للبيئة</span></div>
+<div class="pills"><span class="pill ph" data-full="اليوم العالمي للبيئة">اليوم العالمي …</span></div>
 </td><td class="dc wk">
 <div class="dt"><span class="dn">6</span><span class="dh">16</span></div>
 <div class="pills"></div>
-</td></tr><tr style="height:20px"><td class="dc">
+</td></tr><tr><td class="dc">
 <div class="dt"><span class="dn">7</span><span class="dh">17</span></div>
 <div class="pills"></div>
 </td><td class="dc">
 <div class="dt"><span class="dn">8</span><span class="dh">18</span></div>
-<div class="pills"><span class="pill ph" data-tip="اليوم العالمي للمحيطات">اليوم العالمي للمحيطات</span></div>
+<div class="pills"><span class="pill ph" data-full="اليوم العالمي للمحيطات">اليوم العالمي …</span></div>
 </td><td class="dc">
 <div class="dt"><span class="dn">9</span><span class="dh">19</span></div>
 <div class="pills"></div>
@@ -798,9 +840,9 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:var(--bg);color:#
 </td><td class="dc wk">
 <div class="dt"><span class="dn">13</span><span class="dh">23</span></div>
 <div class="pills"></div>
-</td></tr><tr style="height:20px"><td class="dc">
+</td></tr><tr><td class="dc">
 <div class="dt"><span class="dn">14</span><span class="dh">24</span></div>
-<div class="pills"><span class="pill ph" data-tip="اليوم العالمي للمتبرعين بالدم">اليوم العالمي للمتبرعين بالدم</span></div>
+<div class="pills"><span class="pill ph" data-full="اليوم العالمي للمتبرعين بالدم">اليوم العالمي …</span></div>
 </td><td class="dc">
 <div class="dt"><span class="dn">15</span><span class="dh">25</span></div>
 <div class="pills"></div>
@@ -819,7 +861,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:var(--bg);color:#
 </td><td class="dc wk">
 <div class="dt"><span class="dn">20</span><span class="dh">30</span></div>
 <div class="pills"></div>
-</td></tr><tr style="height:20px"><td class="dc">
+</td></tr><tr><td class="dc">
 <div class="dt"><span class="dn">21</span><span class="dh">1</span></div>
 <div class="pills"></div>
 </td><td class="dc">
@@ -833,14 +875,14 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:var(--bg);color:#
 <div class="pills"></div>
 </td><td class="dc">
 <div class="dt"><span class="dn">25</span><span class="dh">5</span></div>
-<div class="pills"><span class="pill pe" data-tip="نهاية العام الدراسي 2025-2026">نهاية العام الدراسي 2025-2026</span></div>
+<div class="pills"><span class="pill pe" data-full="نهاية العام الدراسي 2025-2026">نهاية العام ال…</span></div>
 </td><td class="dc wk">
 <div class="dt"><span class="dn">26</span><span class="dh">6</span></div>
 <div class="pills"></div>
 </td><td class="dc wk">
 <div class="dt"><span class="dn">27</span><span class="dh">7</span></div>
 <div class="pills"></div>
-</td></tr><tr style="height:20px"><td class="dc">
+</td></tr><tr><td class="dc">
 <div class="dt"><span class="dn">28</span><span class="dh">8</span></div>
 <div class="pills"></div>
 </td><td class="dc">
@@ -850,25 +892,29 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:var(--bg);color:#
 <div class="dt"><span class="dn">30</span><span class="dh">10</span></div>
 <div class="pills"></div>
 </td><td class="emp"></td><td class="emp"></td><td class="emp"></td><td class="emp"></td></tr></tbody>
-  </table>
-</div>
-<div class="mc">
-  <div class="mh" style="background:linear-gradient(135deg,#4A4A9A 0%,#3DBDAD 100%)">
-    <div class="mh-ar">يوليو</div>
-    <div class="mh-sub">ذو الحجة - محرم</div>
-    <div class="mh-en">JUL</div>
+    </table>
   </div>
-  <table class="ctbl">
-    <thead><tr>
-      <th style="background:#3a3a88">أحد</th>
-      <th style="background:#3a3a88">اثن</th>
-      <th style="background:#3a3a88">ثلا</th>
-      <th style="background:#3a3a88">أرب</th>
-      <th style="background:#3a3a88">خمي</th>
-      <th class="thfs">جمع</th>
-      <th class="thfs">سبت</th>
-    </tr></thead>
-    <tbody><tr style="height:20px"><td class="emp"></td><td class="emp"></td><td class="emp"></td><td class="dc">
+</section>
+<section class="month-card" id="m7">
+  <div class="mh" style="background:linear-gradient(135deg,#4A4A9A 0%,#3DBDAD 100%)">
+    <div class="mh-info">
+      <span class="mh-ar">يوليو 2026م</span>
+      <span class="mh-hij">ذو الحجة - محرم</span>
+    </div>
+    <span class="mh-en">07</span>
+  </div>
+  <div class="tbl-wrap">
+    <table class="ctbl">
+      <thead><tr>
+        <th style="background:#2a8f88">أحد</th>
+        <th style="background:#2a8f88">اثن</th>
+        <th style="background:#2a8f88">ثلا</th>
+        <th style="background:#2a8f88">أرب</th>
+        <th style="background:#2a8f88">خمي</th>
+        <th class="thfs">جمع</th>
+        <th class="thfs">سبت</th>
+      </tr></thead>
+      <tbody><tr><td class="emp"></td><td class="emp"></td><td class="emp"></td><td class="dc">
 <div class="dt"><span class="dn">1</span><span class="dh">11</span></div>
 <div class="pills"></div>
 </td><td class="dc">
@@ -880,7 +926,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:var(--bg);color:#
 </td><td class="dc wk">
 <div class="dt"><span class="dn">4</span><span class="dh">14</span></div>
 <div class="pills"></div>
-</td></tr><tr style="height:20px"><td class="dc">
+</td></tr><tr><td class="dc">
 <div class="dt"><span class="dn">5</span><span class="dh">15</span></div>
 <div class="pills"></div>
 </td><td class="dc">
@@ -900,8 +946,8 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:var(--bg);color:#
 <div class="pills"></div>
 </td><td class="dc wk">
 <div class="dt"><span class="dn">11</span><span class="dh">21</span></div>
-<div class="pills"><span class="pill ph" data-tip="اليوم العالمي للسكان">اليوم العالمي للسكان</span></div>
-</td></tr><tr style="height:20px"><td class="dc">
+<div class="pills"><span class="pill ph" data-full="اليوم العالمي للسكان">اليوم العالمي …</span></div>
+</td></tr><tr><td class="dc">
 <div class="dt"><span class="dn">12</span><span class="dh">22</span></div>
 <div class="pills"></div>
 </td><td class="dc">
@@ -922,7 +968,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:var(--bg);color:#
 </td><td class="dc wk">
 <div class="dt"><span class="dn">18</span><span class="dh">28</span></div>
 <div class="pills"></div>
-</td></tr><tr style="height:20px"><td class="dc">
+</td></tr><tr><td class="dc">
 <div class="dt"><span class="dn">19</span><span class="dh">29</span></div>
 <div class="pills"></div>
 </td><td class="dc">
@@ -943,7 +989,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:var(--bg);color:#
 </td><td class="dc wk">
 <div class="dt"><span class="dn">25</span><span class="dh">5</span></div>
 <div class="pills"></div>
-</td></tr><tr style="height:20px"><td class="dc">
+</td></tr><tr><td class="dc">
 <div class="dt"><span class="dn">26</span><span class="dh">6</span></div>
 <div class="pills"></div>
 </td><td class="dc">
@@ -951,7 +997,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:var(--bg);color:#
 <div class="pills"></div>
 </td><td class="dc">
 <div class="dt"><span class="dn">28</span><span class="dh">8</span></div>
-<div class="pills"><span class="pill ph" data-tip="اليوم العالمي لالتهاب الكبد">اليوم العالمي لالتهاب الكبد</span></div>
+<div class="pills"><span class="pill ph" data-full="اليوم العالمي لالتهاب الكبد">اليوم العالمي …</span></div>
 </td><td class="dc">
 <div class="dt"><span class="dn">29</span><span class="dh">9</span></div>
 <div class="pills"></div>
@@ -962,28 +1008,32 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:var(--bg);color:#
 <div class="dt"><span class="dn">31</span><span class="dh">11</span></div>
 <div class="pills"></div>
 </td><td class="emp"></td></tr></tbody>
-  </table>
-</div>
-<div class="mc">
-  <div class="mh" style="background:linear-gradient(135deg,#3DBDAD 0%,#4A4A9A 100%)">
-    <div class="mh-ar">أغسطس</div>
-    <div class="mh-sub">محرم - صفر</div>
-    <div class="mh-en">AUG</div>
+    </table>
   </div>
-  <table class="ctbl">
-    <thead><tr>
-      <th style="background:#2a9e96">أحد</th>
-      <th style="background:#2a9e96">اثن</th>
-      <th style="background:#2a9e96">ثلا</th>
-      <th style="background:#2a9e96">أرب</th>
-      <th style="background:#2a9e96">خمي</th>
-      <th class="thfs">جمع</th>
-      <th class="thfs">سبت</th>
-    </tr></thead>
-    <tbody><tr style="height:17px"><td class="emp"></td><td class="emp"></td><td class="emp"></td><td class="emp"></td><td class="emp"></td><td class="emp"></td><td class="dc wk">
+</section>
+<section class="month-card" id="m8">
+  <div class="mh" style="background:linear-gradient(135deg,#3DBDAD 0%,#4A4A9A 100%)">
+    <div class="mh-info">
+      <span class="mh-ar">أغسطس 2026م</span>
+      <span class="mh-hij">محرم - صفر</span>
+    </div>
+    <span class="mh-en">08</span>
+  </div>
+  <div class="tbl-wrap">
+    <table class="ctbl">
+      <thead><tr>
+        <th style="background:#36368a">أحد</th>
+        <th style="background:#36368a">اثن</th>
+        <th style="background:#36368a">ثلا</th>
+        <th style="background:#36368a">أرب</th>
+        <th style="background:#36368a">خمي</th>
+        <th class="thfs">جمع</th>
+        <th class="thfs">سبت</th>
+      </tr></thead>
+      <tbody><tr><td class="emp"></td><td class="emp"></td><td class="emp"></td><td class="emp"></td><td class="emp"></td><td class="emp"></td><td class="dc wk">
 <div class="dt"><span class="dn">1</span><span class="dh">10</span></div>
 <div class="pills"></div>
-</td></tr><tr style="height:17px"><td class="dc">
+</td></tr><tr><td class="dc">
 <div class="dt"><span class="dn">2</span><span class="dh">11</span></div>
 <div class="pills"></div>
 </td><td class="dc">
@@ -1004,7 +1054,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:var(--bg);color:#
 </td><td class="dc wk">
 <div class="dt"><span class="dn">8</span><span class="dh">17</span></div>
 <div class="pills"></div>
-</td></tr><tr style="height:17px"><td class="dc">
+</td></tr><tr><td class="dc">
 <div class="dt"><span class="dn">9</span><span class="dh">18</span></div>
 <div class="pills"></div>
 </td><td class="dc">
@@ -1012,7 +1062,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:var(--bg);color:#
 <div class="pills"></div>
 </td><td class="dc">
 <div class="dt"><span class="dn">11</span><span class="dh">20</span></div>
-<div class="pills"><span class="pill pe" data-tip="عودة المشرفين والإداريين">عودة المشرفين والإداريين</span></div>
+<div class="pills"><span class="pill pe" data-full="عودة المشرفين والإداريين">عودة المشرفين …</span></div>
 </td><td class="dc">
 <div class="dt"><span class="dn">12</span><span class="dh">21</span></div>
 <div class="pills"></div>
@@ -1025,9 +1075,9 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:var(--bg);color:#
 </td><td class="dc wk">
 <div class="dt"><span class="dn">15</span><span class="dh">24</span></div>
 <div class="pills"></div>
-</td></tr><tr style="height:17px"><td class="dc">
+</td></tr><tr><td class="dc">
 <div class="dt"><span class="dn">16</span><span class="dh">25</span></div>
-<div class="pills"><span class="pill pe" data-tip="عودة المعلمين">عودة المعلمين</span></div>
+<div class="pills"><span class="pill pe" data-full="عودة المعلمين">عودة المعلمين</span></div>
 </td><td class="dc">
 <div class="dt"><span class="dn">17</span><span class="dh">26</span></div>
 <div class="pills"></div>
@@ -1046,9 +1096,9 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:var(--bg);color:#
 </td><td class="dc wk">
 <div class="dt"><span class="dn">22</span><span class="dh">1</span></div>
 <div class="pills"></div>
-</td></tr><tr style="height:17px"><td class="dc">
+</td></tr><tr><td class="dc">
 <div class="dt"><span class="dn">23</span><span class="dh">2</span></div>
-<div class="pills"><span class="pill pe" data-tip="بداية العام الدراسي 2026-2027">بداية العام الدراسي 2026-2027</span></div>
+<div class="pills"><span class="pill pe" data-full="بداية العام الدراسي 2026-2027">بداية العام ال…</span></div>
 </td><td class="dc">
 <div class="dt"><span class="dn">24</span><span class="dh">3</span></div>
 <div class="pills"></div>
@@ -1067,32 +1117,36 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:var(--bg);color:#
 </td><td class="dc wk">
 <div class="dt"><span class="dn">29</span><span class="dh">8</span></div>
 <div class="pills"></div>
-</td></tr><tr style="height:17px"><td class="dc">
+</td></tr><tr><td class="dc">
 <div class="dt"><span class="dn">30</span><span class="dh">9</span></div>
 <div class="pills"></div>
 </td><td class="dc">
 <div class="dt"><span class="dn">31</span><span class="dh">10</span></div>
 <div class="pills"></div>
 </td><td class="emp"></td><td class="emp"></td><td class="emp"></td><td class="emp"></td><td class="emp"></td></tr></tbody>
-  </table>
-</div>
-<div class="mc">
-  <div class="mh" style="background:linear-gradient(135deg,#7B52AB 0%,#4A4A9A 100%)">
-    <div class="mh-ar">سبتمبر</div>
-    <div class="mh-sub">صفر - ربيع الأول</div>
-    <div class="mh-en">SEP</div>
+    </table>
   </div>
-  <table class="ctbl">
-    <thead><tr>
-      <th style="background:#3a3a88">أحد</th>
-      <th style="background:#3a3a88">اثن</th>
-      <th style="background:#3a3a88">ثلا</th>
-      <th style="background:#3a3a88">أرب</th>
-      <th style="background:#3a3a88">خمي</th>
-      <th class="thfs">جمع</th>
-      <th class="thfs">سبت</th>
-    </tr></thead>
-    <tbody><tr style="height:20px"><td class="emp"></td><td class="emp"></td><td class="dc">
+</section>
+<section class="month-card" id="m9">
+  <div class="mh" style="background:linear-gradient(135deg,#7B52AB 0%,#4A4A9A 100%)">
+    <div class="mh-info">
+      <span class="mh-ar">سبتمبر 2026م</span>
+      <span class="mh-hij">صفر - ربيع الأول</span>
+    </div>
+    <span class="mh-en">09</span>
+  </div>
+  <div class="tbl-wrap">
+    <table class="ctbl">
+      <thead><tr>
+        <th style="background:#2a8f88">أحد</th>
+        <th style="background:#2a8f88">اثن</th>
+        <th style="background:#2a8f88">ثلا</th>
+        <th style="background:#2a8f88">أرب</th>
+        <th style="background:#2a8f88">خمي</th>
+        <th class="thfs">جمع</th>
+        <th class="thfs">سبت</th>
+      </tr></thead>
+      <tbody><tr><td class="emp"></td><td class="emp"></td><td class="dc">
 <div class="dt"><span class="dn">1</span><span class="dh">9</span></div>
 <div class="pills"></div>
 </td><td class="dc">
@@ -1107,7 +1161,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:var(--bg);color:#
 </td><td class="dc wk">
 <div class="dt"><span class="dn">5</span><span class="dh">13</span></div>
 <div class="pills"></div>
-</td></tr><tr style="height:20px"><td class="dc">
+</td></tr><tr><td class="dc">
 <div class="dt"><span class="dn">6</span><span class="dh">14</span></div>
 <div class="pills"></div>
 </td><td class="dc">
@@ -1121,19 +1175,19 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:var(--bg);color:#
 <div class="pills"></div>
 </td><td class="dc">
 <div class="dt"><span class="dn">10</span><span class="dh">18</span></div>
-<div class="pills"><span class="pill ph" data-tip="اليوم العالمي لمنع الانتحار">اليوم العالمي لمنع الانتحار</span></div>
+<div class="pills"><span class="pill ph" data-full="اليوم العالمي لمنع الانتحار">اليوم العالمي …</span></div>
 </td><td class="dc wk">
 <div class="dt"><span class="dn">11</span><span class="dh">19</span></div>
 <div class="pills"></div>
 </td><td class="dc wk">
 <div class="dt"><span class="dn">12</span><span class="dh">20</span></div>
 <div class="pills"></div>
-</td></tr><tr style="height:20px"><td class="dc">
+</td></tr><tr><td class="dc">
 <div class="dt"><span class="dn">13</span><span class="dh">21</span></div>
 <div class="pills"></div>
 </td><td class="dc">
 <div class="dt"><span class="dn">14</span><span class="dh">22</span></div>
-<div class="pills"><span class="pill ph" data-tip="اليوم العالمي للإسعافات الأولية">اليوم العالمي للإسعافات الأولية</span></div>
+<div class="pills"><span class="pill ph" data-full="اليوم العالمي للإسعافات الأولية">اليوم العالمي …</span></div>
 </td><td class="dc">
 <div class="dt"><span class="dn">15</span><span class="dh">23</span></div>
 <div class="pills"></div>
@@ -1142,35 +1196,35 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:var(--bg);color:#
 <div class="pills"></div>
 </td><td class="dc">
 <div class="dt"><span class="dn">17</span><span class="dh">25</span></div>
-<div class="pills"><span class="pill ph" data-tip="اليوم العالمي لسلامة المرضى">اليوم العالمي لسلامة المرضى</span></div>
+<div class="pills"><span class="pill ph" data-full="اليوم العالمي لسلامة المرضى">اليوم العالمي …</span></div>
 </td><td class="dc wk">
 <div class="dt"><span class="dn">18</span><span class="dh">26</span></div>
 <div class="pills"></div>
 </td><td class="dc wk">
 <div class="dt"><span class="dn">19</span><span class="dh">27</span></div>
 <div class="pills"></div>
-</td></tr><tr style="height:20px"><td class="dc">
+</td></tr><tr><td class="dc">
 <div class="dt"><span class="dn">20</span><span class="dh">28</span></div>
 <div class="pills"></div>
 </td><td class="dc">
 <div class="dt"><span class="dn">21</span><span class="dh">29</span></div>
-<div class="pills"><span class="pill ph" data-tip="اليوم العالمي للزهايمر">اليوم العالمي للزهايمر</span></div>
+<div class="pills"><span class="pill ph" data-full="اليوم العالمي للزهايمر">اليوم العالمي …</span></div>
 </td><td class="dc">
 <div class="dt"><span class="dn">22</span><span class="dh">30</span></div>
 <div class="pills"></div>
 </td><td class="dc hl">
 <div class="dt"><span class="dn">23</span><span class="dh">1</span></div>
-<div class="pills"><span class="pill pn" data-tip="اليوم الوطني السعودي">اليوم الوطني السعودي</span><span class="pill pe" data-tip="إجازة اليوم الوطني">إجازة اليوم الوطني</span></div>
+<div class="pills"><span class="pill pn" data-full="اليوم الوطني السعودي">اليوم الوطني ا…</span><span class="pill pe" data-full="إجازة اليوم الوطني">إجازة اليوم ال…</span></div>
 </td><td class="dc hl">
 <div class="dt"><span class="dn">24</span><span class="dh">2</span></div>
-<div class="pills"><span class="pill pn" data-tip="إجازة اليوم الوطني">إجازة اليوم الوطني</span></div>
+<div class="pills"><span class="pill pn" data-full="إجازة اليوم الوطني">إجازة اليوم ال…</span></div>
 </td><td class="dc wk">
 <div class="dt"><span class="dn">25</span><span class="dh">3</span></div>
 <div class="pills"></div>
 </td><td class="dc wk">
 <div class="dt"><span class="dn">26</span><span class="dh">4</span></div>
 <div class="pills"></div>
-</td></tr><tr style="height:20px"><td class="dc">
+</td></tr><tr><td class="dc">
 <div class="dt"><span class="dn">27</span><span class="dh">5</span></div>
 <div class="pills"></div>
 </td><td class="dc">
@@ -1178,39 +1232,43 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:var(--bg);color:#
 <div class="pills"></div>
 </td><td class="dc">
 <div class="dt"><span class="dn">29</span><span class="dh">7</span></div>
-<div class="pills"><span class="pill ph" data-tip="اليوم العالمي للقلب">اليوم العالمي للقلب</span></div>
+<div class="pills"><span class="pill ph" data-full="اليوم العالمي للقلب">اليوم العالمي …</span></div>
 </td><td class="dc">
 <div class="dt"><span class="dn">30</span><span class="dh">8</span></div>
 <div class="pills"></div>
 </td><td class="emp"></td><td class="emp"></td><td class="emp"></td></tr></tbody>
-  </table>
-</div>
-<div class="mc">
-  <div class="mh" style="background:linear-gradient(135deg,#4A4A9A 0%,#3DBDAD 100%)">
-    <div class="mh-ar">أكتوبر</div>
-    <div class="mh-sub">ربيع الأول - ربيع الآخر</div>
-    <div class="mh-en">OCT</div>
+    </table>
   </div>
-  <table class="ctbl">
-    <thead><tr>
-      <th style="background:#2a9e96">أحد</th>
-      <th style="background:#2a9e96">اثن</th>
-      <th style="background:#2a9e96">ثلا</th>
-      <th style="background:#2a9e96">أرب</th>
-      <th style="background:#2a9e96">خمي</th>
-      <th class="thfs">جمع</th>
-      <th class="thfs">سبت</th>
-    </tr></thead>
-    <tbody><tr style="height:20px"><td class="emp"></td><td class="emp"></td><td class="emp"></td><td class="emp"></td><td class="dc">
+</section>
+<section class="month-card" id="m10">
+  <div class="mh" style="background:linear-gradient(135deg,#4A4A9A 0%,#3DBDAD 100%)">
+    <div class="mh-info">
+      <span class="mh-ar">أكتوبر 2026م</span>
+      <span class="mh-hij">ربيع الأول - ربيع الآخر</span>
+    </div>
+    <span class="mh-en">10</span>
+  </div>
+  <div class="tbl-wrap">
+    <table class="ctbl">
+      <thead><tr>
+        <th style="background:#36368a">أحد</th>
+        <th style="background:#36368a">اثن</th>
+        <th style="background:#36368a">ثلا</th>
+        <th style="background:#36368a">أرب</th>
+        <th style="background:#36368a">خمي</th>
+        <th class="thfs">جمع</th>
+        <th class="thfs">سبت</th>
+      </tr></thead>
+      <tbody><tr><td class="emp"></td><td class="emp"></td><td class="emp"></td><td class="emp"></td><td class="dc">
 <div class="dt"><span class="dn">1</span><span class="dh">9</span></div>
-<div class="pills"><span class="pill ph" data-tip="اليوم العالمي للمسنين">اليوم العالمي للمسنين</span></div>
+<div class="pills"><span class="pill ph" data-full="اليوم العالمي للمسنين">اليوم العالمي …</span></div>
 </td><td class="dc wk">
 <div class="dt"><span class="dn">2</span><span class="dh">10</span></div>
 <div class="pills"></div>
 </td><td class="dc wk">
 <div class="dt"><span class="dn">3</span><span class="dh">11</span></div>
 <div class="pills"></div>
-</td></tr><tr style="height:20px"><td class="dc">
+</td></tr><tr><td class="dc">
 <div class="dt"><span class="dn">4</span><span class="dh">12</span></div>
 <div class="pills"></div>
 </td><td class="dc">
@@ -1230,8 +1288,8 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:var(--bg);color:#
 <div class="pills"></div>
 </td><td class="dc wk">
 <div class="dt"><span class="dn">10</span><span class="dh">18</span></div>
-<div class="pills"><span class="pill ph" data-tip="يوم الصحة النفسية العالمي">يوم الصحة النفسية العالمي</span></div>
-</td></tr><tr style="height:20px"><td class="dc">
+<div class="pills"><span class="pill ph" data-full="يوم الصحة النفسية العالمي">يوم الصحة النف…</span></div>
+</td></tr><tr><td class="dc">
 <div class="dt"><span class="dn">11</span><span class="dh">19</span></div>
 <div class="pills"></div>
 </td><td class="dc">
@@ -1248,11 +1306,11 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:var(--bg);color:#
 <div class="pills"></div>
 </td><td class="dc wk">
 <div class="dt"><span class="dn">16</span><span class="dh">24</span></div>
-<div class="pills"><span class="pill ph" data-tip="اليوم العالمي للأغذية">اليوم العالمي للأغذية</span></div>
+<div class="pills"><span class="pill ph" data-full="اليوم العالمي للأغذية">اليوم العالمي …</span></div>
 </td><td class="dc wk">
 <div class="dt"><span class="dn">17</span><span class="dh">25</span></div>
 <div class="pills"></div>
-</td></tr><tr style="height:20px"><td class="dc">
+</td></tr><tr><td class="dc">
 <div class="dt"><span class="dn">18</span><span class="dh">26</span></div>
 <div class="pills"></div>
 </td><td class="dc">
@@ -1273,7 +1331,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:var(--bg);color:#
 </td><td class="dc wk">
 <div class="dt"><span class="dn">24</span><span class="dh">2</span></div>
 <div class="pills"></div>
-</td></tr><tr style="height:20px"><td class="dc">
+</td></tr><tr><td class="dc">
 <div class="dt"><span class="dn">25</span><span class="dh">3</span></div>
 <div class="pills"></div>
 </td><td class="dc">
@@ -1295,25 +1353,29 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:var(--bg);color:#
 <div class="dt"><span class="dn">31</span><span class="dh">9</span></div>
 <div class="pills"></div>
 </td></tr></tbody>
-  </table>
-</div>
-<div class="mc">
-  <div class="mh" style="background:linear-gradient(135deg,#3DBDAD 0%,#7B52AB 100%)">
-    <div class="mh-ar">نوفمبر</div>
-    <div class="mh-sub">ربيع الآخر - جمادى الأول</div>
-    <div class="mh-en">NOV</div>
+    </table>
   </div>
-  <table class="ctbl">
-    <thead><tr>
-      <th style="background:#3a3a88">أحد</th>
-      <th style="background:#3a3a88">اثن</th>
-      <th style="background:#3a3a88">ثلا</th>
-      <th style="background:#3a3a88">أرب</th>
-      <th style="background:#3a3a88">خمي</th>
-      <th class="thfs">جمع</th>
-      <th class="thfs">سبت</th>
-    </tr></thead>
-    <tbody><tr style="height:20px"><td class="dc">
+</section>
+<section class="month-card" id="m11">
+  <div class="mh" style="background:linear-gradient(135deg,#3DBDAD 0%,#7B52AB 100%)">
+    <div class="mh-info">
+      <span class="mh-ar">نوفمبر 2026م</span>
+      <span class="mh-hij">ربيع الآخر - جمادى الأول</span>
+    </div>
+    <span class="mh-en">11</span>
+  </div>
+  <div class="tbl-wrap">
+    <table class="ctbl">
+      <thead><tr>
+        <th style="background:#2a8f88">أحد</th>
+        <th style="background:#2a8f88">اثن</th>
+        <th style="background:#2a8f88">ثلا</th>
+        <th style="background:#2a8f88">أرب</th>
+        <th style="background:#2a8f88">خمي</th>
+        <th class="thfs">جمع</th>
+        <th class="thfs">سبت</th>
+      </tr></thead>
+      <tbody><tr><td class="dc">
 <div class="dt"><span class="dn">1</span><span class="dh">8</span></div>
 <div class="pills"></div>
 </td><td class="dc">
@@ -1334,7 +1396,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:var(--bg);color:#
 </td><td class="dc wk">
 <div class="dt"><span class="dn">7</span><span class="dh">14</span></div>
 <div class="pills"></div>
-</td></tr><tr style="height:20px"><td class="dc">
+</td></tr><tr><td class="dc">
 <div class="dt"><span class="dn">8</span><span class="dh">15</span></div>
 <div class="pills"></div>
 </td><td class="dc">
@@ -1348,14 +1410,14 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:var(--bg);color:#
 <div class="pills"></div>
 </td><td class="dc">
 <div class="dt"><span class="dn">12</span><span class="dh">19</span></div>
-<div class="pills"><span class="pill ph" data-tip="اليوم العالمي للالتهاب الرئوي">اليوم العالمي للالتهاب الرئوي</span></div>
+<div class="pills"><span class="pill ph" data-full="اليوم العالمي للالتهاب الرئوي">اليوم العالمي …</span></div>
 </td><td class="dc wk">
 <div class="dt"><span class="dn">13</span><span class="dh">20</span></div>
 <div class="pills"></div>
 </td><td class="dc wk">
 <div class="dt"><span class="dn">14</span><span class="dh">21</span></div>
-<div class="pills"><span class="pill ph" data-tip="اليوم العالمي للسكري">اليوم العالمي للسكري</span></div>
-</td></tr><tr style="height:20px"><td class="dc">
+<div class="pills"><span class="pill ph" data-full="اليوم العالمي للسكري">اليوم العالمي …</span></div>
+</td></tr><tr><td class="dc">
 <div class="dt"><span class="dn">15</span><span class="dh">22</span></div>
 <div class="pills"></div>
 </td><td class="dc">
@@ -1372,11 +1434,11 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:var(--bg);color:#
 <div class="pills"></div>
 </td><td class="dc wk">
 <div class="dt"><span class="dn">20</span><span class="dh">27</span></div>
-<div class="pills"><span class="pill ph" data-tip="اليوم العالمي للطفل">اليوم العالمي للطفل</span><span class="pill pe" data-tip="بداية إجازة الخريف">بداية إجازة الخريف</span></div>
+<div class="pills"><span class="pill ph" data-full="اليوم العالمي للطفل">اليوم العالمي …</span><span class="pill pe" data-full="بداية إجازة الخريف">بداية إجازة ال…</span></div>
 </td><td class="dc wk">
 <div class="dt"><span class="dn">21</span><span class="dh">28</span></div>
 <div class="pills"></div>
-</td></tr><tr style="height:20px"><td class="dc">
+</td></tr><tr><td class="dc">
 <div class="dt"><span class="dn">22</span><span class="dh">29</span></div>
 <div class="pills"></div>
 </td><td class="dc">
@@ -1396,48 +1458,52 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:var(--bg);color:#
 <div class="pills"></div>
 </td><td class="dc wk">
 <div class="dt"><span class="dn">28</span><span class="dh">5</span></div>
-<div class="pills"><span class="pill pe" data-tip="نهاية إجازة الخريف">نهاية إجازة الخريف</span></div>
-</td></tr><tr style="height:20px"><td class="dc">
+<div class="pills"><span class="pill pe" data-full="نهاية إجازة الخريف">نهاية إجازة ال…</span></div>
+</td></tr><tr><td class="dc">
 <div class="dt"><span class="dn">29</span><span class="dh">6</span></div>
 <div class="pills"></div>
 </td><td class="dc">
 <div class="dt"><span class="dn">30</span><span class="dh">7</span></div>
 <div class="pills"></div>
 </td><td class="emp"></td><td class="emp"></td><td class="emp"></td><td class="emp"></td><td class="emp"></td></tr></tbody>
-  </table>
-</div>
-<div class="mc">
-  <div class="mh" style="background:linear-gradient(135deg,#4A4A9A 0%,#3DBDAD 100%)">
-    <div class="mh-ar">ديسمبر</div>
-    <div class="mh-sub">جمادى الأول - جمادى الآخرة</div>
-    <div class="mh-en">DEC</div>
+    </table>
   </div>
-  <table class="ctbl">
-    <thead><tr>
-      <th style="background:#2a9e96">أحد</th>
-      <th style="background:#2a9e96">اثن</th>
-      <th style="background:#2a9e96">ثلا</th>
-      <th style="background:#2a9e96">أرب</th>
-      <th style="background:#2a9e96">خمي</th>
-      <th class="thfs">جمع</th>
-      <th class="thfs">سبت</th>
-    </tr></thead>
-    <tbody><tr style="height:20px"><td class="emp"></td><td class="emp"></td><td class="dc">
+</section>
+<section class="month-card" id="m12">
+  <div class="mh" style="background:linear-gradient(135deg,#4A4A9A 0%,#3DBDAD 100%)">
+    <div class="mh-info">
+      <span class="mh-ar">ديسمبر 2026م</span>
+      <span class="mh-hij">جمادى الأول - جمادى الآخرة</span>
+    </div>
+    <span class="mh-en">12</span>
+  </div>
+  <div class="tbl-wrap">
+    <table class="ctbl">
+      <thead><tr>
+        <th style="background:#36368a">أحد</th>
+        <th style="background:#36368a">اثن</th>
+        <th style="background:#36368a">ثلا</th>
+        <th style="background:#36368a">أرب</th>
+        <th style="background:#36368a">خمي</th>
+        <th class="thfs">جمع</th>
+        <th class="thfs">سبت</th>
+      </tr></thead>
+      <tbody><tr><td class="emp"></td><td class="emp"></td><td class="dc">
 <div class="dt"><span class="dn">1</span><span class="dh">7</span></div>
-<div class="pills"><span class="pill ph" data-tip="يوم الإيدز العالمي">يوم الإيدز العالمي</span></div>
+<div class="pills"><span class="pill ph" data-full="يوم الإيدز العالمي">يوم الإيدز الع…</span></div>
 </td><td class="dc">
 <div class="dt"><span class="dn">2</span><span class="dh">8</span></div>
 <div class="pills"></div>
 </td><td class="dc">
 <div class="dt"><span class="dn">3</span><span class="dh">9</span></div>
-<div class="pills"><span class="pill ph" data-tip="اليوم العالمي لذوي الإعاقة">اليوم العالمي لذوي الإعاقة</span></div>
+<div class="pills"><span class="pill ph" data-full="اليوم العالمي لذوي الإعاقة">اليوم العالمي …</span></div>
 </td><td class="dc wk">
 <div class="dt"><span class="dn">4</span><span class="dh">10</span></div>
 <div class="pills"></div>
 </td><td class="dc wk">
 <div class="dt"><span class="dn">5</span><span class="dh">11</span></div>
 <div class="pills"></div>
-</td></tr><tr style="height:20px"><td class="dc">
+</td></tr><tr><td class="dc">
 <div class="dt"><span class="dn">6</span><span class="dh">12</span></div>
 <div class="pills"></div>
 </td><td class="dc">
@@ -1451,14 +1517,14 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:var(--bg);color:#
 <div class="pills"></div>
 </td><td class="dc">
 <div class="dt"><span class="dn">10</span><span class="dh">16</span></div>
-<div class="pills"><span class="pill ph" data-tip="اليوم العالمي لحقوق الإنسان">اليوم العالمي لحقوق الإنسان</span></div>
+<div class="pills"><span class="pill ph" data-full="اليوم العالمي لحقوق الإنسان">اليوم العالمي …</span></div>
 </td><td class="dc wk">
 <div class="dt"><span class="dn">11</span><span class="dh">17</span></div>
 <div class="pills"></div>
 </td><td class="dc wk">
 <div class="dt"><span class="dn">12</span><span class="dh">18</span></div>
-<div class="pills"><span class="pill ph" data-tip="التغطية الصحية الشاملة">التغطية الصحية الشاملة</span></div>
-</td></tr><tr style="height:20px"><td class="dc">
+<div class="pills"><span class="pill ph" data-full="التغطية الصحية الشاملة">التغطية الصحية…</span></div>
+</td></tr><tr><td class="dc">
 <div class="dt"><span class="dn">13</span><span class="dh">19</span></div>
 <div class="pills"></div>
 </td><td class="dc">
@@ -1475,11 +1541,11 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:var(--bg);color:#
 <div class="pills"></div>
 </td><td class="dc wk">
 <div class="dt"><span class="dn">18</span><span class="dh">24</span></div>
-<div class="pills"><span class="pill ph" data-tip="اليوم العالمي للغة العربية">اليوم العالمي للغة العربية</span></div>
+<div class="pills"><span class="pill ph" data-full="اليوم العالمي للغة العربية">اليوم العالمي …</span></div>
 </td><td class="dc wk">
 <div class="dt"><span class="dn">19</span><span class="dh">25</span></div>
 <div class="pills"></div>
-</td></tr><tr style="height:20px"><td class="dc">
+</td></tr><tr><td class="dc">
 <div class="dt"><span class="dn">20</span><span class="dh">26</span></div>
 <div class="pills"></div>
 </td><td class="dc">
@@ -1500,7 +1566,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:var(--bg);color:#
 </td><td class="dc wk">
 <div class="dt"><span class="dn">26</span><span class="dh">2</span></div>
 <div class="pills"></div>
-</td></tr><tr style="height:20px"><td class="dc">
+</td></tr><tr><td class="dc">
 <div class="dt"><span class="dn">27</span><span class="dh">3</span></div>
 <div class="pills"></div>
 </td><td class="dc">
@@ -1516,9 +1582,45 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:var(--bg);color:#
 <div class="dt"><span class="dn">31</span><span class="dh">7</span></div>
 <div class="pills"></div>
 </td><td class="emp"></td><td class="emp"></td></tr></tbody>
-  </table>
-</div>
+    </table>
+  </div>
+</section>
 </div>
 
+<script>
+// Pill tap → show full name in bottom sheet
+document.querySelectorAll('.pill[data-full]').forEach(el => {
+  el.addEventListener('click', e => {
+    e.stopPropagation();
+    document.getElementById('tipText').textContent = el.dataset.full;
+    document.getElementById('tipOverlay').classList.add('show');
+  });
+});
+
+function closeTip() {
+  document.getElementById('tipOverlay').classList.remove('show');
+}
+
+// Highlight active month in nav on scroll
+const cards = document.querySelectorAll('.month-card');
+const navLinks = document.querySelectorAll('.nav-m');
+const topOffset = 56 + 44 + 10;
+
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      const id = e.target.id;
+      navLinks.forEach(a => {
+        a.style.background = a.getAttribute('href') === '#' + id
+          ? 'var(--ind)' : 'var(--ind-l)';
+        a.style.color = a.getAttribute('href') === '#' + id
+          ? 'white' : 'var(--ind)';
+      });
+    }
+  });
+}, {rootMargin: `-${topOffset}px 0px -60% 0px`, threshold: 0});
+
+cards.forEach(c => obs.observe(c));
+</script>
 </body>
 </html>
