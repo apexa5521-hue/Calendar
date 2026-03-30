@@ -301,22 +301,45 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:var(--bg);color:v
     <textarea class="finput" rows="8" readonly style="font-size:10px;direction:ltr;font-family:monospace">// ════════════════════════════════════════════════════════
 // APEXCARE CALENDAR — Google Apps Script Backend
 // انسخ هذا الكود في Apps Script وانشر كـ Web App
+// Execute as: Me | Who has access: Anyone
 // ════════════════════════════════════════════════════════
 
 const SHEET_NAME = 'CalendarEvents';
 
 function doGet(e) {
-  const action = e.parameter.action;
-  if (action === 'getAll') return getAll();
-  return ContentService.createTextOutput(JSON.stringify({error:'unknown action'}))
-    .setMimeType(ContentService.MimeType.JSON);
+  const p        = e.parameter;
+  const action   = p.action;
+  const callback = p.callback; // JSONP support
+
+  let result;
+  if (action === 'getAll') result = getAllData();
+  else if (action === 'save')   result = saveEvent(p);
+  else if (action === 'delete') result = deleteEvent(p);
+  else result = {error: 'unknown action: ' + action};
+
+  const jsonStr = JSON.stringify(result);
+  if (callback) {
+    // JSONP response — wraps JSON in callback function call
+    return ContentService
+      .createTextOutput(callback + '(' + jsonStr + ')')
+      .setMimeType(ContentService.MimeType.JAVASCRIPT);
+  }
+  return json(result);
 }
 
+// doPost kept for compatibility
 function doPost(e) {
-  const data = JSON.parse(e.postData.contents);
-  if (data.action === 'save')   return saveEvent(data);
-  if (data.action === 'delete') return deleteEvent(data);
-  return ContentService.createTextOutput(JSON.stringify({error:'unknown action'}))
+  try {
+    const data = JSON.parse(e.postData.contents);
+    if (data.action === 'save')   return saveEvent(data);
+    if (data.action === 'delete') return deleteEvent(data);
+  } catch(err) {}
+  return json({error: 'post error'});
+}
+
+function json(obj) {
+  return ContentService
+    .createTextOutput(JSON.stringify(obj))
     .setMimeType(ContentService.MimeType.JSON);
 }
 
@@ -327,38 +350,49 @@ function getSheet() {
     sh = ss.insertSheet(SHEET_NAME);
     sh.appendRow(['id','date','name','color','role','timestamp']);
     sh.setFrozenRows(1);
+    sh.setColumnWidth(1, 140);
+    sh.setColumnWidth(2, 100);
+    sh.setColumnWidth(3, 200);
   }
   return sh;
 }
 
-function getAll() {
+function getAllData() {
   const sh = getSheet();
   const rows = sh.getDataRange().getValues();
-  const headers = rows[0];
-  const events = rows.slice(1).map(r => {
-    const obj = {};
-    headers.forEach((h,i) => obj[h] = r[i]);
-    return obj;
-  });
-  return ContentService.createTextOutput(JSON.stringify({ok:true, events}))
-    .setMimeType(ContentService.MimeType.JSON);
+  if (rows.length <= 1) return {ok: true, events: []};
+  const headers = rows[0].map(h => String(h).trim());
+  const events = rows.slice(1)
+    .filter(r => r[0])
+    .map(r => {
+      const obj = {};
+      headers.forEach((h, i) => obj[h] = r[i] === undefined ? '' : String(r[i]));
+      return obj;
+    });
+  return {ok: true, events};
 }
 
 function saveEvent(data) {
   const sh = getSheet();
-  sh.appendRow([data.id, data.date, data.name, data.color, data.role, new Date().toISOString()]);
-  return ContentService.createTextOutput(JSON.stringify({ok:true}))
-    .setMimeType(ContentService.MimeType.JSON);
+  const id   = data.id   || String(Date.now());
+  const date = data.date || '';
+  const name = data.name || '';
+  const color= data.color|| '#f59e0b';
+  const role = data.role || 'general';
+  sh.appendRow([id, date, name, color, role, new Date().toISOString()]);
+  return {ok: true, id};
 }
 
 function deleteEvent(data) {
   const sh = getSheet();
   const rows = sh.getDataRange().getValues();
-  for (let i = rows.length-1; i >= 1; i--) {
-    if (rows[i][0] === data.id) { sh.deleteRow(i+1); break; }
+  for (let i = rows.length - 1; i >= 1; i--) {
+    if (String(rows[i][0]) === String(data.id)) {
+      sh.deleteRow(i + 1);
+      break;
+    }
   }
-  return ContentService.createTextOutput(JSON.stringify({ok:true}))
-    .setMimeType(ContentService.MimeType.JSON);
+  return {ok: true};
 }</textarea>
   </div>
   <button class="mbtn mbtn-primary" onclick="closeOverlay('ovSetup')">فهمت ✓</button>
@@ -2033,41 +2067,51 @@ function updateSyncStatus(state, msg) {
 }
 
 // ══ SYNC: FETCH ALL FROM SHEETS ══════════════════════
-async function syncNow() {
+function syncNow() {
   if (!gasUrl) { alert('أدخل رابط Apps Script أولاً'); return; }
   updateSyncStatus('loading');
-  try {
-    const r = await fetch(gasUrl + '?action=getAll');
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    const d = await r.json();
-    if (!d.ok) throw new Error('API error');
-    // Rebuild customEvents from sheet rows
-    customEvents = {};
-    (d.events || []).forEach(ev => {
-      if (!customEvents[ev.date]) customEvents[ev.date] = [];
-      customEvents[ev.date].push({
-        id: ev.id, name: ev.name, color: ev.color, role: ev.role
+  // JSONP — only way to bypass CORS with Apps Script
+  const cbName = '__gasCallback_' + Date.now();
+  const script = document.createElement('script');
+  const timer = setTimeout(() => {
+    delete window[cbName];
+    script.remove();
+    updateSyncStatus('error', '❌ انتهت المهلة — تأكد من الرابط والإعدادات');
+  }, 10000);
+
+  window[cbName] = function(d) {
+    clearTimeout(timer);
+    delete window[cbName];
+    script.remove();
+    try {
+      if (!d || !d.ok) throw new Error('API error');
+      customEvents = {};
+      (d.events || []).forEach(ev => {
+        if (!ev.date || !ev.name) return;
+        if (!customEvents[ev.date]) customEvents[ev.date] = [];
+        customEvents[ev.date].push({
+          id: String(ev.id), name: ev.name,
+          color: ev.color||'#f59e0b', role: ev.role||'general'
+        });
       });
-    });
-    renderAllCells();
-    updateSyncStatus('connected', '✓ تمت المزامنة — ' + (d.events||[]).length + ' حدث');
-  } catch(e) {
-    updateSyncStatus('error', 'خطأ: ' + e.message);
-  }
+      renderAllCells();
+      updateSyncStatus('connected', '✓ تمت المزامنة — ' + (d.events||[]).length + ' حدث');
+    } catch(e) {
+      updateSyncStatus('error', '❌ خطأ في البيانات: ' + e.message);
+    }
+  };
+
+  script.src = gasUrl + '?action=getAll&callback=' + cbName + '&t=' + Date.now();
+  document.head.appendChild(script);
 }
 
 // ══ SAVE TO SHEETS ════════════════════════════════════
-async function postToSheets(payload) {
-  if (!gasUrl) return; // offline mode — still show locally
-  try {
-    await fetch(gasUrl, {
-      method:'POST',
-      body: JSON.stringify(payload),
-      headers: {'Content-Type':'application/json'}
-    });
-  } catch(e) {
-    console.warn('Sheets sync failed:', e);
-  }
+function postToSheets(payload) {
+  if (!gasUrl) return;
+  // no-cors: browser sends request, we can't read response — that's fine for write ops
+  const params = new URLSearchParams(payload);
+  fetch(gasUrl + '?' + params.toString(), { mode: 'no-cors' })
+    .catch(e => console.warn('Sheets write failed:', e));
 }
 
 // ══ RENDER CELLS ══════════════════════════════════════
@@ -2187,7 +2231,7 @@ function saveEvent() {
   openPinModal(selectedRole,'أدخل رقم سري '+(ROLE_LABELS[selectedRole]?.label||''));
 }
 
-async function doSaveEvent(date,name) {
+function doSaveEvent(date,name) {
   const ev={id:Date.now().toString(36)+Math.random().toString(36).slice(2),
     name,color:selectedColor,role:selectedRole};
   if(!customEvents[date]) customEvents[date]=[];
@@ -2196,9 +2240,8 @@ async function doSaveEvent(date,name) {
   closeOverlay('ovAdd');
   // Post to sheets
   if(gasUrl) {
-    updateSyncStatus('loading');
-    await postToSheets({action:'save',...ev,date});
-    updateSyncStatus('connected','✓ تم الحفظ في Google Sheets');
+    postToSheets({action:'save', id:ev.id, date, name:ev.name, color:ev.color, role:ev.role});
+    updateSyncStatus('connected','✓ تم الحفظ — المزامنة تلقائية');
   }
 }
 
@@ -2215,7 +2258,7 @@ async function doDelete(date,id) {
   customEvents[date]=(customEvents[date]||[]).filter(e=>e.id!==id);
   if(!customEvents[date].length) delete customEvents[date];
   renderCell(date); renderDayEvList();
-  if(gasUrl) await postToSheets({action:'delete',id});
+  if(gasUrl) postToSheets({action:'delete', id});
 }
 
 // ══ PIN ═══════════════════════════════════════════════
