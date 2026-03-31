@@ -706,20 +706,48 @@ function مشاركة_ملاحظة(p) {
 /* ══ JSONP WRITE — يرسل للشيت بدون مشاكل CORS ══ */
 function gasWrite(params, onDone) {
  if (!GAS_URL) return;
- const cb  = '__w_' + Date.now();
- const sc  = document.createElement('script');
+ const cb = '__w_' + Date.now();
+ const sc = document.createElement('script');
  const timer = setTimeout(() => {
   delete window[cb]; sc.remove();
+  console.warn('[GAS] timeout:', params.action);
   if (onDone) onDone(false);
- }, 12000);
+ }, 15000);
  window[cb] = (r) => {
   clearTimeout(timer); delete window[cb]; sc.remove();
+  console.log('[GAS] write ok:', params.action, r);
   if (onDone) onDone(r && r.ok);
  };
- params.callback = cb;
- sc.src = GAS_URL + '?' + new URLSearchParams(params).toString();
+ const p = {};
+ Object.keys(params).forEach(k => { if (k !== 'ts') p[k] = params[k]; });
+ if (p.text && p.text.length > 500) p.text = p.text.slice(0, 500);
+ p.callback = cb;
+ const url = GAS_URL + '?' + new URLSearchParams(p).toString();
+ console.log('[GAS] sending:', params.action, url.slice(0,100)+'...');
+ sc.src = url;
  document.head.appendChild(sc);
 }
+
+function gasRead(params, onDone) {
+ if (!GAS_URL) { onDone(null); return; }
+ const cb = '__r_' + Date.now();
+ const sc = document.createElement('script');
+ const timer = setTimeout(() => {
+  delete window[cb]; sc.remove();
+  console.warn('[GAS] read timeout');
+  onDone(null);
+ }, 12000);
+ window[cb] = d => {
+  clearTimeout(timer); delete window[cb]; sc.remove();
+  console.log('[GAS] read ok, notes:', d && d.notes && d.notes.length);
+  onDone(d);
+ };
+ const p = Object.assign({}, params, { callback: cb, t: Date.now() });
+ sc.src = GAS_URL + '?' + new URLSearchParams(p).toString();
+ document.head.appendChild(sc);
+}
+
+
 const $e = id => document.getElementById(id);
 const $t = (id,v) => { const e=$e(id); if(e) e.textContent=v; };
 const $h = (id,v) => { const e=$e(id); if(e) e.innerHTML=v; };
@@ -833,32 +861,23 @@ function logout() {
  $e('pinField').value='';
  document.querySelectorAll('.role-card').forEach(c=>c.classList.remove('selected'));
  selectedRoleEl=null;
- notesMap={};allNotes=[];
+ notesMap={};allNotes=[];pendingIds.clear();
 }
 
 /* ══ FETCH NOTES ═════════════════════════════════════ */
 function loadNotes(silent) {
- if (!GAS_URL) {
- hideLoad('لا يوجد رابط — اضبط GAS_URL');
- return;
- }
+ if (!GAS_URL) { hideLoad('لا يوجد رابط'); return; }
  if (!silent) $c('loadScreen','gone',false);
- const cb='__cb_'+Date.now();
- const sc=document.createElement('script');
- const timer=setTimeout(()=>{
- delete window[cb]; sc.remove();
- hideLoad(' تعذر الاتصال');
- },10000);
- window[cb]=d=>{
- clearTimeout(timer);delete window[cb];sc.remove();
- if(d&&d.ok){
- processNotes(d.notes||[]);
- hideLoad('');
- if(!silent) showToast(' تم التحميل — '+(d.notes||[]).length+' ملاحظة','#10b981');
- } else { hideLoad('خطأ في البيانات'); }
- };
- sc.src=GAS_URL+'?action=getAll&viewer='+currentRole+'&callback='+cb+'&t='+Date.now();
- document.head.appendChild(sc);
+ gasRead({action:'getAll', viewer: currentRole}, d => {
+  if (d && d.ok) {
+   processNotes(d.notes || []);
+   hideLoad('');
+   if (!silent) showToast('تم التحميل — '+(d.notes||[]).length+' ملاحظة','#10b981');
+  } else {
+   hideLoad('تعذر الاتصال');
+   if (!silent) showToast('تعذر الاتصال بالشيت','#ef4444');
+  }
+ });
 }
 
 function processNotes(remoteNotes) {
@@ -1094,19 +1113,21 @@ function submitNote() {
  closeOv('ovAdd');
  showToast('تم الإرسال','#10b981');
  if(GAS_URL){
-  gasWrite({action:'save',...note}, ok => {
+  const sp={action:'save',id:note.id,date:note.date,text:note.text,
+   from_role:note.from_role,to_role:note.to_role,color:note.color,shared:'no'};
+  gasWrite(sp, ok => {
    if(ok){
-    pendingIds.delete(id); // تأكيد — أزل من المعلقة
-    showToast('تم الحفظ في الشيت','#10b981');
+    pendingIds.delete(id);
+    setTimeout(()=>loadNotes(true),1500);
+    showToast('تم الحفظ','#10b981');
    } else {
-    // أعد المحاولة بعد 5 ثواني
-    setTimeout(()=>gasWrite({action:'save',...note}, ok2=>{
-     if(ok2) pendingIds.delete(id);
-    }), 5000);
+    showToast('جاري إعادة المحاولة...','#f59e0b');
+    setTimeout(()=>gasWrite(sp, ok2=>{
+     if(ok2){ pendingIds.delete(id); loadNotes(true); }
+     else showToast('تعذر الحفظ في الشيت','#ef4444');
+    }),6000);
    }
   });
-  // مزامنة للتأكد من الظهور للآخرين
-  setTimeout(()=>loadNotes(true), 4000);
  }
 }
 
