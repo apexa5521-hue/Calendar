@@ -272,6 +272,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:var(--bg);color:v
   </div>
   <div class="tb-btns">
     <button class="btn btn-add" onclick="showAddEvent()">＋ حدث</button>
+    <button class="btn" style="background:#1e293b;color:#94a3b8;font-size:13px;padding:7px 11px" onclick="showEventsLegend()" title="جميع الأحداث">📋</button>
     <button class="btn btn-print" onclick="window.print()">PDF</button>
     <button class="btn btn-lock" id="adminBtn" onclick="adminToggle()" title="الإدارة">🔒</button>
   </div>
@@ -492,6 +493,38 @@ function deleteEvent(p) {
 }</textarea>
   </div>
   <button class="mbtn mbtn-ok" onclick="closeOv('ovSetup')">فهمت ✓</button>
+</div>
+</div>
+
+<!-- EVENTS LEGEND MODAL -->
+<div class="overlay" id="ovEvLegend" onclick="closeOv('ovEvLegend')">
+<div class="modal" onclick="event.stopPropagation()" style="max-width:500px">
+  <div class="modal-title">📋 جميع الأحداث والإجازات</div>
+
+  <!-- Type filter: fixed vs custom -->
+  <div style="display:flex;gap:6px;margin-bottom:6px">
+    <button class="filt-btn active" data-type="all"    onclick="filterEvType(this)">الكل</button>
+    <button class="filt-btn"        data-type="fixed"  onclick="filterEvType(this)">📅 الأحداث الثابتة</button>
+    <button class="filt-btn"        data-type="custom" onclick="filterEvType(this)">✏️ الأحداث المضافة</button>
+  </div>
+
+  <!-- Role filter (for custom events) -->
+  <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px" id="evLegFilters">
+    <button class="filt-btn active" data-role="all"       onclick="filterEvLeg(this)">الكل</button>
+    <button class="filt-btn"        data-role="h"         onclick="filterEvLeg(this)" style="background:#d8f4f022;color:#0c6060;border-color:#3DBDAD">يوم صحي</button>
+    <button class="filt-btn"        data-role="e"         onclick="filterEvLeg(this)" style="background:#e4e3f522;color:#4A4A9A;border-color:#4A4A9A">إجازة تعليم</button>
+    <button class="filt-btn"        data-role="n"         onclick="filterEvLeg(this)" style="background:#ede4f722;color:#7B52AB;border-color:#7B52AB">إجازة رسمية</button>
+    <button class="filt-btn"        data-role="general"   onclick="filterEvLeg(this)">عام</button>
+    <button class="filt-btn"        data-role="ceo"       onclick="filterEvLeg(this)">المدير</button>
+    <button class="filt-btn"        data-role="marketing" onclick="filterEvLeg(this)">التسويق</button>
+    <button class="filt-btn"        data-role="hr"        onclick="filterEvLeg(this)">HR</button>
+    <button class="filt-btn"        data-role="ops"       onclick="filterEvLeg(this)">العمليات</button>
+  </div>
+
+  <div id="evLegCount" style="font-size:11px;color:var(--muted);margin-bottom:6px;font-weight:600"></div>
+  <div id="evLegList" style="display:flex;flex-direction:column;gap:4px;max-height:58vh;overflow-y:auto"></div>
+  <div id="evLegEmpty" style="display:none;text-align:center;color:var(--muted);padding:20px;font-size:13px">لا توجد أحداث لهذا الفلتر</div>
+  <button class="mbtn mbtn-c" onclick="closeOv('ovEvLegend')" style="margin-top:8px">إغلاق</button>
 </div>
 </div>
 
@@ -3750,8 +3783,8 @@ function renderAll() { Object.keys(eventsMap).forEach(renderCell); }
 function init() {
   loadGasUrl();
   if (!gasUrl) {
-    // No URL configured — hide loading screen immediately
-    hideLoading('لا يوجد ربط بـ Google Sheets');
+    hideLoading('');
+    document.getElementById('connBadge').textContent = 'غير متصل';
     return;
   }
   setSyncUI('loading', 'جاري تحميل الأحداث...');
@@ -3777,6 +3810,8 @@ function init() {
   });
   // Background refresh every 60s
   setInterval(() => { if(gasUrl) fetchAll(d=>{ if(d&&d.ok){eventsMap={};(d.events||[]).forEach(ev=>{if(!ev.date||!ev.name)return;if(!eventsMap[ev.date])eventsMap[ev.date]=[];eventsMap[ev.date].push({id:String(ev.id),name:ev.name,color:ev.color||'#f59e0b',role:ev.role||'general'});});renderAll();}}); }, 60000);
+  // Safety net: always hide loading after 4s
+  setTimeout(() => hideLoading(), 4000);
   // Refresh on tab visible
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden && gasUrl) {
@@ -3788,8 +3823,8 @@ function init() {
 function hideLoading(msg) {
   const ls = document.getElementById('loadingScreen');
   const lt = document.getElementById('loadingText');
-  if (lt) lt.textContent = msg;
-  setTimeout(() => ls && ls.classList.add('hidden'), 600);
+  if (lt) lt.textContent = msg || '';
+  setTimeout(() => ls && ls.classList.add('hidden'), 500);
 }
 
 function manualSync() {
@@ -4033,6 +4068,221 @@ function resetAdminTimer() {
 }
 
 function showSetup(){showOv('ovSetup');}
+
+// ── Events Legend (all custom events) ────────────────────────────────────
+// ── Fixed events data (all holidays + health days + education) ────────────
+const FIXED_EV_DATA = [
+  // يناير
+  {date:'2026-01-04',name:'اليوم العالمي للبرايل',type:'h',color:'#3DBDAD'},
+  {date:'2026-01-09',name:'انتهاء إجازة منتصف العام',type:'e',color:'#4A4A9A'},
+  {date:'2026-01-24',name:'اليوم الدولي للتعليم',type:'h',color:'#3DBDAD'},
+  {date:'2026-01-28',name:'اليوم العالمي لمرض الجذام',type:'h',color:'#3DBDAD'},
+  // فبراير
+  {date:'2026-02-01',name:'اليوم الخليجي لحقوق المريض',type:'h',color:'#3DBDAD'},
+  {date:'2026-02-04',name:'اليوم العالمي لمكافحة السرطان',type:'h',color:'#3DBDAD'},
+  {date:'2026-02-11',name:'اليوم العالمي للمرأة في العلوم',type:'h',color:'#3DBDAD'},
+  {date:'2026-02-15',name:'اليوم العالمي لسرطان الأطفال',type:'h',color:'#3DBDAD'},
+  {date:'2026-02-20',name:'اليوم العالمي للعدالة الاجتماعية',type:'h',color:'#3DBDAD'},
+  {date:'2026-02-21',name:'اليوم العالمي للغة الأم',type:'h',color:'#3DBDAD'},
+  {date:'2026-02-22',name:'يوم التأسيس — إجازة رسمية',type:'n',color:'#7B52AB'},
+  {date:'2026-02-22',name:'إجازة يوم التأسيس',type:'e',color:'#4A4A9A'},
+  {date:'2026-02-28',name:'اليوم العالمي للأمراض النادرة',type:'h',color:'#3DBDAD'},
+  // مارس — عيد الفطر
+  {date:'2026-03-05',name:'بداية إجازة عيد الفطر',type:'n',color:'#7B52AB'},
+  {date:'2026-03-05',name:'إجازة عيد الفطر',type:'e',color:'#4A4A9A'},
+  {date:'2026-03-06',name:'إجازة عيد الفطر',type:'n',color:'#7B52AB'},
+  {date:'2026-03-07',name:'إجازة عيد الفطر',type:'n',color:'#7B52AB'},
+  {date:'2026-03-08',name:'اليوم العالمي للمرأة',type:'h',color:'#3DBDAD'},
+  {date:'2026-03-08',name:'إجازة عيد الفطر',type:'n',color:'#7B52AB'},
+  {date:'2026-03-09',name:'إجازة عيد الفطر',type:'n',color:'#7B52AB'},
+  {date:'2026-03-10',name:'إجازة عيد الفطر',type:'n',color:'#7B52AB'},
+  {date:'2026-03-11',name:'إجازة عيد الفطر',type:'n',color:'#7B52AB'},
+  {date:'2026-03-12',name:'إجازة عيد الفطر',type:'n',color:'#7B52AB'},
+  {date:'2026-03-13',name:'إجازة عيد الفطر',type:'n',color:'#7B52AB'},
+  {date:'2026-03-14',name:'اليوم العالمي للكلى',type:'h',color:'#3DBDAD'},
+  {date:'2026-03-15',name:'اليوم العالمي للنوم',type:'h',color:'#3DBDAD'},
+  {date:'2026-03-15',name:'إجازة عيد الفطر',type:'n',color:'#7B52AB'},
+  {date:'2026-03-16',name:'إجازة عيد الفطر',type:'n',color:'#7B52AB'},
+  {date:'2026-03-17',name:'إجازة عيد الفطر',type:'n',color:'#7B52AB'},
+  {date:'2026-03-18',name:'إجازة عيد الفطر',type:'n',color:'#7B52AB'},
+  {date:'2026-03-19',name:'إجازة عيد الفطر',type:'n',color:'#7B52AB'},
+  {date:'2026-03-20',name:'اليوم العالمي لصحة الفم',type:'h',color:'#3DBDAD'},
+  {date:'2026-03-20',name:'إجازة عيد الفطر',type:'n',color:'#7B52AB'},
+  {date:'2026-03-21',name:'اليوم العالمي للسعادة',type:'h',color:'#3DBDAD'},
+  {date:'2026-03-21',name:'إجازة عيد الفطر',type:'n',color:'#7B52AB'},
+  {date:'2026-03-22',name:'اليوم العالمي للمياه',type:'h',color:'#3DBDAD'},
+  {date:'2026-03-24',name:'اليوم العالمي للسل',type:'h',color:'#3DBDAD'},
+  {date:'2026-03-26',name:'عودة الدراسة بعد عيد الفطر',type:'e',color:'#4A4A9A'},
+  // أبريل
+  {date:'2026-04-02',name:'اليوم العالمي للتوحد',type:'h',color:'#3DBDAD'},
+  {date:'2026-04-07',name:'يوم الصحة العالمي WHO',type:'h',color:'#3DBDAD'},
+  {date:'2026-04-11',name:'اليوم العالمي لشلل الرعاش',type:'h',color:'#3DBDAD'},
+  {date:'2026-04-21',name:'اليوم العالمي للإبداع والابتكار',type:'h',color:'#3DBDAD'},
+  {date:'2026-04-25',name:'اليوم العالمي للملاريا',type:'h',color:'#3DBDAD'},
+  {date:'2026-04-28',name:'اليوم العالمي لصحة العمل',type:'h',color:'#3DBDAD'},
+  // مايو
+  {date:'2026-05-12',name:'اليوم العالمي للتمريض',type:'h',color:'#3DBDAD'},
+  {date:'2026-05-17',name:'اليوم العالمي للاتصالات',type:'h',color:'#3DBDAD'},
+  {date:'2026-05-22',name:'بداية إجازة عيد الأضحى',type:'n',color:'#7B52AB'},
+  {date:'2026-05-22',name:'إجازة عيد الأضحى',type:'e',color:'#4A4A9A'},
+  {date:'2026-05-23',name:'إجازة عيد الأضحى',type:'n',color:'#7B52AB'},
+  {date:'2026-05-24',name:'إجازة عيد الأضحى',type:'n',color:'#7B52AB'},
+  {date:'2026-05-25',name:'إجازة عيد الأضحى',type:'n',color:'#7B52AB'},
+  {date:'2026-05-26',name:'إجازة عيد الأضحى',type:'n',color:'#7B52AB'},
+  {date:'2026-05-27',name:'إجازة عيد الأضحى',type:'n',color:'#7B52AB'},
+  {date:'2026-05-28',name:'اليوم العالمي لصحة المرأة',type:'h',color:'#3DBDAD'},
+  {date:'2026-05-28',name:'إجازة عيد الأضحى',type:'n',color:'#7B52AB'},
+  {date:'2026-05-29',name:'إجازة عيد الأضحى',type:'n',color:'#7B52AB'},
+  {date:'2026-05-30',name:'إجازة عيد الأضحى',type:'n',color:'#7B52AB'},
+  {date:'2026-05-31',name:'الامتناع عن التبغ',type:'h',color:'#3DBDAD'},
+  {date:'2026-05-31',name:'إجازة عيد الأضحى',type:'n',color:'#7B52AB'},
+  // يونيو
+  {date:'2026-06-01',name:'نهاية إجازة عيد الأضحى',type:'n',color:'#7B52AB'},
+  {date:'2026-06-05',name:'اليوم العالمي للبيئة',type:'h',color:'#3DBDAD'},
+  {date:'2026-06-08',name:'اليوم العالمي للمحيطات',type:'h',color:'#3DBDAD'},
+  {date:'2026-06-14',name:'اليوم العالمي للمتبرعين بالدم',type:'h',color:'#3DBDAD'},
+  {date:'2026-06-25',name:'نهاية العام الدراسي 2025-2026',type:'e',color:'#4A4A9A'},
+  // يوليو
+  {date:'2026-07-11',name:'اليوم العالمي للسكان',type:'h',color:'#3DBDAD'},
+  {date:'2026-07-28',name:'اليوم العالمي لالتهاب الكبد',type:'h',color:'#3DBDAD'},
+  // أغسطس
+  {date:'2026-08-11',name:'عودة المشرفين والإداريين',type:'e',color:'#4A4A9A'},
+  {date:'2026-08-16',name:'عودة المعلمين',type:'e',color:'#4A4A9A'},
+  {date:'2026-08-23',name:'بداية العام الدراسي 2026-2027',type:'e',color:'#4A4A9A'},
+  // سبتمبر
+  {date:'2026-09-10',name:'اليوم العالمي لمنع الانتحار',type:'h',color:'#3DBDAD'},
+  {date:'2026-09-14',name:'اليوم العالمي للإسعافات الأولية',type:'h',color:'#3DBDAD'},
+  {date:'2026-09-17',name:'اليوم العالمي لسلامة المرضى',type:'h',color:'#3DBDAD'},
+  {date:'2026-09-21',name:'اليوم العالمي للزهايمر',type:'h',color:'#3DBDAD'},
+  {date:'2026-09-23',name:'اليوم الوطني السعودي',type:'n',color:'#7B52AB'},
+  {date:'2026-09-23',name:'إجازة اليوم الوطني',type:'e',color:'#4A4A9A'},
+  {date:'2026-09-24',name:'إجازة اليوم الوطني',type:'n',color:'#7B52AB'},
+  {date:'2026-09-29',name:'اليوم العالمي للقلب',type:'h',color:'#3DBDAD'},
+  // أكتوبر
+  {date:'2026-10-01',name:'اليوم العالمي للمسنين',type:'h',color:'#3DBDAD'},
+  {date:'2026-10-10',name:'يوم الصحة النفسية العالمي',type:'h',color:'#3DBDAD'},
+  {date:'2026-10-16',name:'اليوم العالمي للأغذية',type:'h',color:'#3DBDAD'},
+  // نوفمبر
+  {date:'2026-11-12',name:'اليوم العالمي للالتهاب الرئوي',type:'h',color:'#3DBDAD'},
+  {date:'2026-11-14',name:'اليوم العالمي للسكري',type:'h',color:'#3DBDAD'},
+  {date:'2026-11-20',name:'اليوم العالمي للطفل',type:'h',color:'#3DBDAD'},
+  {date:'2026-11-20',name:'بداية إجازة الخريف',type:'e',color:'#4A4A9A'},
+  {date:'2026-11-28',name:'نهاية إجازة الخريف',type:'e',color:'#4A4A9A'},
+  // ديسمبر
+  {date:'2026-12-01',name:'يوم الإيدز العالمي',type:'h',color:'#3DBDAD'},
+  {date:'2026-12-03',name:'اليوم العالمي لذوي الإعاقة',type:'h',color:'#3DBDAD'},
+  {date:'2026-12-10',name:'اليوم العالمي لحقوق الإنسان',type:'h',color:'#3DBDAD'},
+  {date:'2026-12-12',name:'التغطية الصحية الشاملة',type:'h',color:'#3DBDAD'},
+  {date:'2026-12-18',name:'اليوم العالمي للغة العربية',type:'h',color:'#3DBDAD'},
+];
+
+// type labels for fixed events
+const FIXED_TYPE_META = {
+  h: {label:'يوم صحي',      bg:'#3DBDAD'},
+  e: {label:'إجازة تعليم',  bg:'#4A4A9A'},
+  n: {label:'إجازة رسمية',  bg:'#7B52AB'},
+};
+
+let evLegFilter     = 'all';
+let evLegTypeFilter = 'all';
+
+function showEventsLegend() {
+  evLegFilter = 'all';
+  evLegTypeFilter = 'all';
+  document.querySelectorAll('[data-role]').forEach(b => b.classList.toggle('active', b.dataset.role==='all'));
+  document.querySelectorAll('[data-type]').forEach(b => b.classList.toggle('active', b.dataset.type==='all'));
+  renderEvLegend();
+  showOv('ovEvLegend');
+}
+function filterEvType(btn) {
+  evLegTypeFilter = btn.dataset.type;
+  document.querySelectorAll('[data-type]').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  // Reset role filter when switching type
+  evLegFilter = 'all';
+  document.querySelectorAll('[data-role]').forEach(b => b.classList.toggle('active', b.dataset.role==='all'));
+  renderEvLegend();
+}
+function filterEvLeg(btn) {
+  evLegFilter = btn.dataset.role;
+  document.querySelectorAll('[data-role]').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderEvLegend();
+}
+
+function renderEvLegend() {
+  const list  = document.getElementById('evLegList');
+  const empty = document.getElementById('evLegEmpty');
+  const count = document.getElementById('evLegCount');
+  const MONTHS = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+
+  let combined = [];
+
+  // ── Fixed events ──
+  if (evLegTypeFilter === 'all' || evLegTypeFilter === 'fixed') {
+    let fixed = [...FIXED_EV_DATA];
+    if (evLegFilter !== 'all') fixed = fixed.filter(e => e.type === evLegFilter);
+    fixed.forEach(ev => combined.push({
+      ...ev,
+      source: 'fixed',
+      tagLabel: FIXED_TYPE_META[ev.type]?.label || ev.type,
+      tagBg:    FIXED_TYPE_META[ev.type]?.bg    || '#888',
+    }));
+  }
+
+  // ── Custom events (from eventsMap / Sheets) ──
+  if (evLegTypeFilter === 'all' || evLegTypeFilter === 'custom') {
+    Object.entries(eventsMap).forEach(([date, evs]) => {
+      evs.forEach(ev => {
+        const rm = ROLE_META[ev.role] || ROLE_META.general;
+        if (evLegFilter !== 'all') {
+          // For custom, filter by role
+          if (!['general','ceo','marketing','hr','ops'].includes(evLegFilter)) return;
+          if (ev.role !== evLegFilter) return;
+        }
+        combined.push({
+          date, name: ev.name, color: ev.color,
+          source: 'custom', id: ev.id, role: ev.role,
+          tagLabel: rm.label, tagBg: rm.bg,
+        });
+      });
+    });
+  }
+
+  // Sort by date
+  combined.sort((a,b) => a.date.localeCompare(b.date));
+
+  // Show count
+  count.textContent = combined.length + ' حدث';
+
+  if (!combined.length) {
+    list.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  let lastMonth = '';
+  list.innerHTML = combined.map(ev => {
+    const [y,m,d] = ev.date.split('-').map(Number);
+    const monthName = MONTHS[m-1];
+    let header = '';
+    if (monthName !== lastMonth) {
+      lastMonth = monthName;
+      header = `<div style="font-size:11px;font-weight:800;color:var(--ind);
+        padding:6px 0 2px;border-bottom:1px solid var(--bdr);margin-bottom:2px">${monthName} 2026م</div>`;
+    }
+    const clickable = ev.source === 'custom' ? `onclick="closeOv('ovEvLegend');showDetail('${ev.date}','${ev.id}')"` : '';
+    const cursor = ev.source === 'custom' ? 'cursor:pointer' : 'cursor:default';
+    return `${header}<div class="ev-leg-item" style="${cursor}" ${clickable}>
+      <div class="ev-leg-dot" style="background:${ev.color}"></div>
+      <div class="ev-leg-name">${ev.name}</div>
+      <div class="ev-leg-date">${d} ${monthName}</div>
+      <span class="ev-leg-tag" style="background:${ev.tagBg}22;color:${ev.tagBg}">${ev.tagLabel}</span>
+      ${ev.source==='custom' ? '<span style="font-size:9px;color:#94a3b8;margin-right:2px">✏️</span>' : ''}
+    </div>`;
+  }).join('');
+}
 
 // ═══ OVERLAY HELPERS ══════════════════════════════
 function showOv(id){document.getElementById(id).classList.add('show');}
