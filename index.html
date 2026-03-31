@@ -16,9 +16,9 @@
   --H:56px;--NAV:48px;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html{scroll-behavior:smooth;scroll-padding-top:calc(var(--H) + var(--NAV) + 8px)}
+html{scroll-behavior:smooth;scroll-padding-top:calc(var(--H) + 40px + 8px)}
 body{font-family:'Tajawal',sans-serif;direction:rtl;background:var(--bg);color:var(--txt);
-  padding-top:calc(var(--H) + var(--NAV));padding-bottom:32px}
+  padding-top:calc(var(--H) + 40px);padding-bottom:32px}
 
 .topbar{position:fixed;top:0;inset-inline:0;height:var(--H);z-index:300;
   background:var(--card);border-bottom:3px solid var(--teal);
@@ -38,7 +38,8 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:var(--bg);color:v
 
 .sync-bar{position:fixed;top:var(--H);inset-inline:0;height:var(--NAV);z-index:250;
   background:var(--card);border-bottom:1px solid var(--bdr);
-  display:flex;align-items:center;justify-content:space-between;padding:0 14px;gap:8px}
+  display:none;align-items:center;justify-content:space-between;padding:0 14px;gap:8px}
+.sync-bar.visible{display:flex}
 .sync-status{font-size:11px;font-weight:600;display:flex;align-items:center;gap:5px}
 .sync-dot{width:7px;height:7px;border-radius:50%;background:#9ca3af;flex-shrink:0}
 .sync-dot.connected{background:#10b981;box-shadow:0 0 0 2px rgba(16,185,129,.2)}
@@ -51,7 +52,7 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:var(--bg);color:v
   font-family:'Tajawal',sans-serif;font-size:11px;font-weight:700;cursor:pointer;
   background:var(--ind);color:#fff;white-space:nowrap}
 
-.month-nav{position:fixed;top:calc(var(--H) + var(--NAV));inset-inline:0;height:40px;z-index:200;
+.month-nav{position:fixed;top:var(--H);inset-inline:0;height:40px;z-index:200;
   background:var(--card);border-bottom:1px solid var(--bdr);
   display:flex;align-items:center;overflow-x:auto;padding:0 12px;gap:6px;
   scrollbar-width:none;-webkit-overflow-scrolling:touch}
@@ -184,11 +185,14 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:var(--bg);color:v
   <div class="tb-btns">
     <button class="btn btn-add" onclick="showAddEvent()">＋ حدث</button>
     <button class="btn btn-print" onclick="window.print()">طباعة</button>
+    <button class="btn" id="adminLockBtn"
+      style="background:#374151;color:#fff;font-size:15px;padding:7px 11px"
+      onclick="toggleAdminPanel()" title="إعدادات الإدارة">🔒</button>
   </div>
 </header>
 
 <!-- SYNC BAR -->
-<div class="sync-bar">
+<div class="sync-bar" id="syncBarEl">
   <div class="sync-status">
     <div class="sync-dot" id="syncDot"></div>
     <span id="syncLabel">غير متصل بـ Google Sheets</span>
@@ -277,6 +281,24 @@ body{font-family:'Tajawal',sans-serif;direction:rtl;background:var(--bg);color:v
   <div class="pin-error" id="pinError" style="display:none">رقم سري خاطئ ❌</div>
   <button class="pin-enter-btn" onclick="verifyPinFromInput()">تأكيد ←</button>
   <button class="mbtn mbtn-cancel" onclick="closeOverlay('ovPin')" style="margin-top:0">إلغاء</button>
+</div>
+</div>
+
+<!-- MODAL: ADMIN PIN -->
+<div class="overlay" id="ovAdminPin" onclick="closeOverlay('ovAdminPin')">
+<div class="modal" onclick="event.stopPropagation()" style="max-width:300px;gap:12px">
+  <div class="modal-title">🔒 إعدادات الإدارة</div>
+  <div class="pin-hint">أدخل رقم سري المدير للدخول</div>
+  <div class="pin-input-wrap">
+    <input class="pin-input" id="adminPinInput" type="password"
+      inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="••••"
+      autocomplete="off"
+      oninput="this.value=this.value.replace(/\D/g,'').slice(0,4);if(this.value.length===4)setTimeout(verifyAdminPin,120)"
+      onkeydown="if(event.key==='Enter')verifyAdminPin()">
+  </div>
+  <div class="pin-error" id="adminPinError" style="display:none">رقم سري خاطئ ❌</div>
+  <button class="pin-enter-btn" onclick="verifyAdminPin()">دخول ←</button>
+  <button class="mbtn mbtn-cancel" onclick="closeOverlay('ovAdminPin')" style="margin-top:0">إلغاء</button>
 </div>
 </div>
 
@@ -424,7 +446,7 @@ function deleteEvent(data) {
 </div>
 
 <!-- LEGEND -->
-<div class="legend" style="margin-top:calc(12px + 40px)">
+<div class="legend" style="margin-top:12px">
   <span class="leg"><span class="ldot" style="background:var(--teal)"></span>يوم صحي عالمي</span>
   <span class="leg"><span class="ldot" style="background:var(--ind)"></span>إجازة تعليم</span>
   <span class="leg"><span class="ldot" style="background:var(--pur)"></span>إجازة رسمية</span>
@@ -2124,7 +2146,7 @@ function renderCell(date) {
     const rl = ROLE_LABELS[ev.role] || ROLE_LABELS.general;
     return `<div class="cev"
       style="background:${ev.color}22;color:${ev.color};border-left:2.5px solid ${ev.color};cursor:pointer"
-      onclick="event.stopPropagation();showEventDetail('${date}','${ev.id}')"
+      onclick="event.stopPropagation();showEventDetail('${date}','${String(ev.id)}')" 
       title="${ev.name}">
       <span style="overflow:hidden;text-overflow:ellipsis;flex:1">${ev.name}</span>
       <span style="font-size:6px;background:${rl.bg}22;color:${rl.bg};padding:0 2px;border-radius:2px;flex-shrink:0;white-space:nowrap">${rl.label}</span>
@@ -2156,7 +2178,7 @@ function showEventDetail(date, id) {
   document.getElementById('evDetailRole').textContent  = rl.label;
   document.getElementById('evDetailRole').style.color  = rl.bg;
   document.getElementById('evDetailDot').style.background = ev.color;
-  document.getElementById('evDetailDelBtn').onclick = () => askDeleteEvent(date, id, ev.role);
+  document.getElementById('evDetailDelBtn').onclick = () => askDeleteEvent(date, String(ev.id), ev.role);
   showOverlay('ovDetail');
 }
 
@@ -2187,7 +2209,7 @@ function renderDayEvList() {
         <div class="ev-name">${ev.name}</div>
         <div class="ev-role" style="color:${rl.bg}">${rl.label}</div>
       </div>
-      <button class="ev-del" onclick="askDeleteEvent('${currentDay}','${ev.id}','${ev.role}')">×</button>
+      <button class="ev-del" onclick="event.stopPropagation();askDeleteEvent('${currentDay}','${String(ev.id)}','${ev.role}')">×</button>
     </div>`;
   }).join('');
 }
@@ -2250,18 +2272,28 @@ function doSaveEvent(date,name) {
 // ══ DELETE ════════════════════════════════════════════
 function askDeleteEvent(date,id,role) {
   closeOverlay('ovDetail');
-  const pin=ROLE_PINS[role];
-  if(!pin||pinVerifiedRoles[role]){ if(confirm('حذف هذا الحدث؟')) doDelete(date,id); return; }
-  pendingSaveData={action:'delete',date,id,role};
-  openPinModal(role,'أدخل الرقم السري للحذف');
+  closeOverlay('ovDay');
+  const pin = ROLE_PINS[role];
+  if (!pin || pinVerifiedRoles[role]) {
+    if (confirm('حذف هذا الحدث؟')) doDelete(date, String(id));
+    return;
+  }
+  pendingSaveData = {action:'delete', date, id: String(id), role};
+  openPinModal(role, 'أدخل الرقم السري للحذف');
 }
 
-async function doDelete(date,id) {
-  customEvents[date]=(customEvents[date]||[]).filter(e=>e.id!==id);
-  if(!customEvents[date].length) delete customEvents[date];
-  renderCell(date); renderDayEvList();
+function doDelete(date,id) {
+  // Remove from local state
+  if(customEvents[date]) {
+    customEvents[date] = customEvents[date].filter(e => String(e.id) !== String(id));
+    if(!customEvents[date].length) delete customEvents[date];
+  }
+  renderCell(date);
+  // Re-render day list if the detail modal was open for this date
+  if(currentDay === date) renderDayEvList();
+  // Send delete to Sheets
   if(gasUrl) {
-    postToSheets({action:'delete', id});
+    postToSheets({action:'delete', id: String(id)});
     setTimeout(() => syncNow(true), 2000);
   }
 }
@@ -2292,7 +2324,7 @@ function verifyPinFromInput() {
     closeOverlay('ovPin');
     const pd=pendingSaveData; pendingSaveData=null;
     if(pd.action==='save')   doSaveEvent(pd.date,pd.name);
-    if(pd.action==='delete') {if(confirm('حذف؟'))doDelete(pd.date,pd.id);}
+    if(pd.action==='delete') {if(confirm('حذف هذا الحدث؟'))doDelete(pd.date,String(pd.id));}
   } else {
     document.getElementById('pinError').style.display='block';
     document.getElementById('pinInput').value='';
@@ -2302,6 +2334,78 @@ function verifyPinFromInput() {
 }
 
 function showSetup() { showOverlay('ovSetup'); }
+
+// ── Admin panel toggle (requires PIN) ─────────────────────────────────
+const ADMIN_PIN = '1234'; // ← غيّر هذا الرقم
+let adminUnlocked = false;
+
+function toggleAdminPanel() {
+  if (adminUnlocked) {
+    // Already unlocked — toggle visibility
+    const bar = document.getElementById('syncBarEl');
+    const btn = document.getElementById('adminLockBtn');
+    if (bar.classList.contains('visible')) {
+      bar.classList.remove('visible');
+      btn.textContent = '🔒';
+      btn.title = 'إعدادات الإدارة';
+      // Adjust nav back
+      document.querySelector('.month-nav').style.top = 'var(--H)';
+      document.body.style.paddingTop = '';
+    } else {
+      bar.classList.add('visible');
+      btn.textContent = '🔓';
+      btn.title = 'إخفاء إعدادات الإدارة';
+      // Push nav down to make room
+      document.querySelector('.month-nav').style.top = 'calc(var(--H) + var(--NAV))';
+      document.body.style.paddingTop = 'calc(var(--H) + var(--NAV) + 40px)';
+    }
+    return;
+  }
+  // Not unlocked — ask for PIN
+  document.getElementById('adminPinInput').value = '';
+  document.getElementById('adminPinError').style.display = 'none';
+  showOverlay('ovAdminPin');
+  setTimeout(() => document.getElementById('adminPinInput').focus(), 200);
+}
+
+function verifyAdminPin() {
+  const val = document.getElementById('adminPinInput').value;
+  if (val === ADMIN_PIN) {
+    adminUnlocked = true;
+    closeOverlay('ovAdminPin');
+    // Show sync bar
+    const bar = document.getElementById('syncBarEl');
+    bar.classList.add('visible');
+    document.getElementById('adminLockBtn').textContent = '🔓';
+    document.getElementById('adminLockBtn').title = 'إخفاء إعدادات الإدارة';
+    document.querySelector('.month-nav').style.top = 'calc(var(--H) + var(--NAV))';
+    document.body.style.paddingTop = 'calc(var(--H) + var(--NAV) + 40px)';
+    // Auto-hide after 5 minutes of inactivity
+    resetAdminTimer();
+  } else {
+    document.getElementById('adminPinError').style.display = 'block';
+    document.getElementById('adminPinInput').value = '';
+    document.getElementById('adminPinInput').focus();
+    setTimeout(() => document.getElementById('adminPinError').style.display='none', 1800);
+  }
+}
+
+// Auto-lock after 5 minutes
+let adminTimer = null;
+function resetAdminTimer() {
+  clearTimeout(adminTimer);
+  adminTimer = setTimeout(() => {
+    if (adminUnlocked) {
+      adminUnlocked = false;
+      const bar = document.getElementById('syncBarEl');
+      bar.classList.remove('visible');
+      document.getElementById('adminLockBtn').textContent = '🔒';
+      document.getElementById('adminLockBtn').title = 'إعدادات الإدارة';
+      document.querySelector('.month-nav').style.top = 'var(--H)';
+      document.body.style.paddingTop = '';
+    }
+  }, 5 * 60 * 1000);
+}
 function showOverlay(id) { document.getElementById(id).classList.add('show'); }
 function closeOverlay(id) { document.getElementById(id).classList.remove('show'); }
 
