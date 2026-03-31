@@ -204,6 +204,11 @@ textarea.finput{resize:vertical;min-height:70px}
 .ni-meta{font-size:10px;color:var(--muted);margin-top:3px;display:flex;gap:6px;flex-wrap:wrap}
 .ni-tag{padding:1px 7px;border-radius:4px;font-size:9.5px;font-weight:700}
 .ni-del{border:none;background:none;color:#e53e3e;font-size:17px;cursor:pointer;padding:0;line-height:1}
+.ni-share{border:none;background:#e0f2fe;color:#0369a1;border-radius:5px;
+  padding:3px 8px;font-family:'Tajawal',sans-serif;font-size:10px;font-weight:700;cursor:pointer;white-space:nowrap}
+.ni-share:active{background:#bae6fd}
+.ni-shared-badge{background:#dcfce7;color:#15803d;border-radius:5px;
+  padding:2px 7px;font-size:9.5px;font-weight:700;white-space:nowrap}
 
 /* ══ INBOX BADGE ═════════════════════════════════════ */
 .inbox-badge{
@@ -407,73 +412,202 @@ textarea.finput{resize:vertical;min-height:70px}
  </div>
  <div class="frow">
  <label class="flabel">كود Apps Script</label>
- <textarea class="finput" rows="10" readonly style="font-size:9px;direction:ltr;font-family:monospace">// ══════════════════════════════════════════════════════
-// APEXCARE CALENDAR — Apps Script Backend
-// Deploy: Web App | Execute as: Me | Access: Anyone
-// ══════════════════════════════════════════════════════
-const SHEET = 'Notes';
+ <textarea class="finput" rows="10" readonly style="font-size:9px;direction:ltr;font-family:monospace">// ══════════════════════════════════════════════════════════════════════════
+// تقويم عيادات أبكس كير 2026 — Google Apps Script
+// ══════════════════════════════════════════════════════════════════════════
+// طريقة النشر:
+//   1. افتح Google Sheets جديد
+//   2. الإضافات ← Apps Script
+//   3. احذف الكود الموجود والصق هذا الكود كاملاً
+//   4. نشر ← نشر جديد ← تطبيق ويب
+//   5. التنفيذ بواسطة: أنا  |  من يمكنه الوصول: أي شخص
+//   6. انسخ الرابط وضعه في const GAS_URL في ملف index.html
+// ══════════════════════════════════════════════════════════════════════════
 
+const اسم_الشيت = 'الملاحظات';
+
+// ── نقطة الدخول الرئيسية ──────────────────────────────────────────────────
 function doGet(e) {
- const p=e.parameter, cb=p.callback;
- let r;
- if (p.action==='getAll') r=getAll(p);
- else if (p.action==='save') r=saveNote(p);
- else if (p.action==='delete') r=deleteNote(p);
- else r={error:'unknown'};
- const s=JSON.stringify(r);
- return cb
- ? ContentService.createTextOutput(cb+'('+s+')').setMimeType(ContentService.MimeType.JAVASCRIPT)
- : ContentService.createTextOutput(s).setMimeType(ContentService.MimeType.JSON);
+  const p  = e.parameter;
+  const cb = p.callback; // JSONP لتجاوز CORS
+
+  let result;
+  if      (p.action === 'getAll') result = جلب_الملاحظات(p);
+  else if (p.action === 'save')   result = حفظ_ملاحظة(p);
+  else if (p.action === 'delete') result = حذف_ملاحظة(p);
+  else if (p.action === 'share')  result = مشاركة_ملاحظة(p);
+  else result = { error: 'إجراء غير معروف: ' + p.action };
+
+  const jsonStr = JSON.stringify(result);
+
+  if (cb) {
+    return ContentService
+      .createTextOutput(cb + '(' + jsonStr + ')')
+      .setMimeType(ContentService.MimeType.JAVASCRIPT);
+  }
+
+  return ContentService
+    .createTextOutput(jsonStr)
+    .setMimeType(ContentService.MimeType.JSON);
 }
 
-function sh() {
- const ss=SpreadsheetApp.getActiveSpreadsheet();
- let s=ss.getSheetByName(SHEET);
- if(!s){
- s=ss.insertSheet(SHEET);
- // Columns: id | date | text | from_role | to_role | color | ts
- s.appendRow(['id','date','text','from_role','to_role','color','ts']);
- s.setFrozenRows(1);
- s.setColumnWidths(1,7,[120,100,300,120,120,80,160]);
- }
- return s;
+// ── الحصول على شيت الملاحظات أو إنشاؤه ──────────────────────────────────
+function الشيت() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName(اسم_الشيت);
+
+  if (!sheet) {
+    sheet = ss.insertSheet(اسم_الشيت);
+
+    // الأعمدة: المعرف | التاريخ | النص | المرسِل | المستقبِل | اللون | مشترك | الوقت
+    sheet.appendRow([
+      'المعرف',
+      'التاريخ',
+      'نص الملاحظة',
+      'المرسِل',
+      'المستقبِل',
+      'اللون',
+      'مشترك (للجميع)',
+      'وقت الإنشاء'
+    ]);
+    sheet.setFrozenRows(1);
+
+    // أحجام الأعمدة
+    sheet.setColumnWidth(1, 150);  // المعرف
+    sheet.setColumnWidth(2, 100);  // التاريخ
+    sheet.setColumnWidth(3, 350);  // النص
+    sheet.setColumnWidth(4, 150);  // المرسِل
+    sheet.setColumnWidth(5, 150);  // المستقبِل
+    sheet.setColumnWidth(6, 80);   // اللون
+    sheet.setColumnWidth(7, 120);  // مشترك
+    sheet.setColumnWidth(8, 180);  // الوقت
+
+    // تنسيق صف الرأس
+    const رأس = sheet.getRange(1, 1, 1, 8);
+    رأس.setBackground('#1e293b');
+    رأس.setFontColor('#ffffff');
+    رأس.setFontWeight('bold');
+    رأس.setHorizontalAlignment('center');
+
+    // ثبّت اتجاه الورقة للعربية
+    ss.setSpreadsheetLocale('ar');
+  }
+
+  return sheet;
 }
 
-// getAll: filter by viewer role
-// CEO sees all | others see only notes sent TO them or from them
-function getAll(p) {
- const viewer = p.viewer || 'public';
- const rows=sh().getDataRange().getValues();
- if(rows.length<=1) return {ok:true,notes:[]};
- const h=rows[0].map(x=>String(x).trim());
- const notes=rows.slice(1).filter(r=>r[0]).map(r=>{
- const o={}; h.forEach((k,i)=>o[k]=String(r[i]||'')); return o;
- }).filter(n=>{
- if(viewer==='ceo') return true; // CEO sees all
- if(n.to_role==='all') return true; // public notes visible to all
- return n.to_role===viewer || n.from_role===viewer; // own notes
- });
- return {ok:true,notes};
+// ── قواعد الرؤية ──────────────────────────────────────────────────────────
+// المدير التنفيذي (ceo) : يرى كل الملاحظات بدون استثناء
+// أي دور آخر           : يرى فقط:
+//   1. الملاحظات التي أرسلها هو بنفسه
+//   2. الملاحظات الموجهة إليه تحديداً (to_role = دوره)
+//   3. الملاحظات العامة (to_role = 'all')
+//   4. الملاحظات التي تم تفعيل "مشترك" عليها (shared = 'yes')
+function جلب_الملاحظات(p) {
+  const مشاهد = p.viewer || 'general';
+  const sheet  = الشيت();
+  const rows   = sheet.getDataRange().getValues();
+
+  if (rows.length &lt;= 1) return { ok: true, notes: [] };
+
+  const headers = rows[0].map(h =&gt; String(h).trim());
+
+  const notes = rows.slice(1)
+    .filter(row =&gt; row[0])
+    .map(row =&gt; {
+      const obj = {};
+      headers.forEach((h, i) =&gt; obj[h] = String(row[i] || ''));
+      // نرجع بأسماء الحقول الإنجليزية للـ frontend
+      return {
+        id:        obj['المعرف']           || '',
+        date:      obj['التاريخ']           || '',
+        text:      obj['نص الملاحظة']      || '',
+        from_role: obj['المرسِل']           || '',
+        to_role:   obj['المستقبِل']         || '',
+        color:     obj['اللون']             || '#f59e0b',
+        shared:    obj['مشترك (للجميع)']   || 'no',
+        ts:        obj['وقت الإنشاء']       || '',
+      };
+    })
+    .filter(note =&gt; {
+      // المدير يرى الكل
+      if (مشاهد === 'ceo') return true;
+      // ملاحظات أرسلها هو
+      if (note.from_role === مشاهد) return true;
+      // ملاحظات موجهة له
+      if (note.to_role === مشاهد) return true;
+      // ملاحظات عامة للجميع
+      if (note.to_role === 'all') return true;
+      // ملاحظات تم مشاركتها
+      if (note.shared === 'yes') return true;
+      return false;
+    });
+
+  return { ok: true, notes };
 }
 
-function saveNote(p) {
- sh().appendRow([
- p.id||String(Date.now()),
- p.date||'', p.text||'',
- p.from_role||'general',
- p.to_role||'all',
- p.color||'#f59e0b',
- new Date().toISOString()
- ]);
- return {ok:true};
+// ── حفظ ملاحظة جديدة ─────────────────────────────────────────────────────
+function حفظ_ملاحظة(p) {
+  const sheet = الشيت();
+
+  const id        = p.id        || String(Date.now());
+  const date      = p.date      || '';
+  const text      = p.text      || '';
+  const from_role = p.from_role || 'general';
+  const to_role   = p.to_role   || 'all';
+  const color     = p.color     || '#f59e0b';
+  const shared    = p.shared    || 'no';
+  const ts        = new Date().toLocaleString('ar-SA');
+
+  sheet.appendRow([id, date, text, from_role, to_role, color, shared, ts]);
+
+  // تلوين الصف حسب الجهة المرسِلة
+  const ألوان_الأدوار = {
+    ceo:       '#fee2e2',
+    marketing: '#ede9fe',
+    hr:        '#dcfce7',
+    ops:       '#ffedd5',
+    quality:   '#e0f2fe',
+    general:   '#f3f4f6',
+  };
+  const lastRow = sheet.getLastRow();
+  sheet.getRange(lastRow, 1, 1, 8)
+    .setBackground(ألوان_الأدوار[from_role] || '#ffffff');
+
+  return { ok: true, id };
 }
 
-function deleteNote(p) {
- const s=sh(), rows=s.getDataRange().getValues();
- for(let i=rows.length-1;i>=1;i--)
- if(String(rows[i][0])===String(p.id)){s.deleteRow(i+1);break;}
- return {ok:true};
-}</textarea>
+// ── حذف ملاحظة بالمعرف ───────────────────────────────────────────────────
+function حذف_ملاحظة(p) {
+  const sheet = الشيت();
+  const rows  = sheet.getDataRange().getValues();
+  const targetId = String(p.id || '');
+
+  for (let i = rows.length - 1; i &gt;= 1; i--) {
+    if (String(rows[i][0]) === targetId) {
+      sheet.deleteRow(i + 1);
+      return { ok: true };
+    }
+  }
+  return { ok: false, error: 'الملاحظة غير موجودة: ' + targetId };
+}
+
+// ── مشاركة ملاحظة مع الجميع ──────────────────────────────────────────────
+function مشاركة_ملاحظة(p) {
+  const sheet = الشيت();
+  const rows  = sheet.getDataRange().getValues();
+  const targetId = String(p.id || '');
+
+  for (let i = rows.length - 1; i &gt;= 1; i--) {
+    if (String(rows[i][0]) === targetId) {
+      // العمود 7 (فهرس 6) هو "مشترك"
+      sheet.getRange(i + 1, 7).setValue('yes');
+      return { ok: true };
+    }
+  }
+  return { ok: false, error: 'الملاحظة غير موجودة: ' + targetId };
+}
+</textarea>
  </div>
  <button class="mbtn mbtn-p" onclick="closeOv('ovSetup')">فهمت </button>
  </div>
@@ -615,10 +749,9 @@ function selectRole(el) {
  document.querySelectorAll('.role-card').forEach(c=>c.classList.remove('selected'));
  el.classList.add('selected');
  selectedRoleEl = el;
- $t('pinLabel',
- 'أدخل رقم السري لـ ' + ROLE_META[el.dataset.role]?.n;
- document.getElementById('pinField').value='';
- document.getElementById('pinField').focus();
+ $t('pinLabel', 'أدخل رقم السري لـ ' + (ROLE_META[el.dataset.role]?.n||''));
+ $e('pinField').value='';
+ $e('pinField').focus();
  $s('pinErr','display','none');
 }
 
@@ -628,8 +761,8 @@ function doLogin() {
  const pin = document.getElementById('pinField').value;
  if (pin !== PINS[role]) {
  $s('pinErr','display','block');
- document.getElementById('pinField').value='';
- document.getElementById('pinField').focus();
+ $e('pinField').value='';
+ $e('pinField').focus();
  setTimeout(()=>$s('pinErr','display','none'),2000);
  return;
  }
@@ -650,7 +783,7 @@ function logout() {
  currentRole = null;
  $c('loginScreen','gone',false);
  $c('appShell','visible',false);
- document.getElementById('pinField').value='';
+ $e('pinField').value='';
  document.querySelectorAll('.role-card').forEach(c=>c.classList.remove('selected'));
  selectedRoleEl=null;
  notesMap={};allNotes=[];
@@ -749,8 +882,8 @@ function openDayModal(date) {
  curDay=date;
  const [y,m,d]=date.split('-').map(Number);
  const dow=new Date(y,m-1,d).getDay();
- $t('dayTitle',DAYS_AR[dow]+'، '+d+' '+MONTHS_AR[m-1]+' 2026م';
- $t('daySub',date;
+ $t('dayTitle', DAYS_AR[dow]+'، '+d+' '+MONTHS_AR[m-1]+' 2026م');
+ $t('daySub', date);
  renderDayNotes();
  showOv('ovDay');
  // Mark notes as read
@@ -797,22 +930,26 @@ function buildNoteItem(n, showDel) {
  <div class="ni-meta">
  <span class="ni-tag" style="background:${fromMeta.bg}22;color:${fromMeta.bg}">${fromMeta.abbr} ${fromMeta.n}</span>
  <span style="color:#94a3b8">←</span>
- <span class="ni-tag" style="background:${toMeta.bg}22;color:${toMeta.bg}">${n.to_role==='all'?' الكل':toMeta.abbr+' '+toMeta.n}</span>
+ <span class="ni-tag" style="background:${toMeta.bg}22;color:${toMeta.bg}">${n.to_role==='all'?'الكل':toMeta.abbr+' '+toMeta.n}</span>
  <span style="color:#94a3b8">·</span>
  <span>${dateStr}</span>
  </div>
  </div>
- ${canDel?`<button class="ni-del" onclick="deleteNote('${n.date}','${n.id}')">×</button>`:''}
+ <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;flex-shrink:0">
+   ${canDel ? '<button class="ni-del" onclick="deleteNote(\'' + n.date + '\',\''+n.id+'\')">&times;</button>' : ''}
+   ${(ROLE_META[currentRole]?.seesAll && n.shared!=='yes') ? '<button class="ni-share" onclick="shareNote(\'' + n.date + '\',\''+n.id+'\')">مشاركة</button>' : ''}
+   ${n.shared==='yes' ? '<span class="ni-shared-badge">مشترك</span>' : ''}
+ </div>
  </div>`;
 }
 
 /* ══ INBOX ═══════════════════════════════════════════ */
 function showInbox() {
  inboxFilter='all';
- $t('inboxTitle',
- ROLE_META[currentRole]?.seesAll ? ' جميع الملاحظات' : ' الوارد والصادر';
- document.querySelectorAll('[data-if]').forEach(b=>b.classList.remove('selected'));
- document.querySelector('[data-if="all"]')?.classList.add('selected');
+ $t('inboxTitle', ROLE_META[currentRole]?.seesAll ? 'جميع الملاحظات' : 'الوارد والصادر');
+ document.querySelectorAll('[data-if]').forEach(b=>{b.style.background='';b.style.color='';b.style.borderColor='';});
+ const allIfBtn=document.querySelector('[data-if="all"]');
+ if(allIfBtn){allIfBtn.style.background='var(--ind)';allIfBtn.style.color='#fff';allIfBtn.style.borderColor='var(--ind)';}
  renderInbox();
  showOv('ovInbox');
 }
@@ -846,12 +983,16 @@ function updateInboxBadge() {
 /* ══ ADD NOTE ════════════════════════════════════════ */
 function showAddNote(date) {
  if(!ROLE_META[currentRole]?.canWrite){ showToast('حسابك للعرض فقط','#f59e0b'); return; }
- document.getElementById('nDate').value=date||'';
- document.getElementById('nText').value='';
+ $e('nDate').value=date||'';
+ $e('nText').value='';
  selTo_val='all';
  document.querySelectorAll('.ttab').forEach(b=>{b.style.background='';b.style.color='';b.style.borderColor='';});
  const allBtn=document.querySelector('.ttab[data-to="all"]');
  if(allBtn){allBtn.style.background='var(--ind)';allBtn.style.color='#fff';allBtn.style.borderColor='var(--ind)';}
+ // Hide self from recipients — you can't send to yourself
+ document.querySelectorAll('[data-to]').forEach(btn=>{
+   btn.style.display = (btn.dataset.to === currentRole) ? 'none' : '';
+ });
  selColor_val='#f59e0b';
  document.querySelectorAll('.co').forEach(c=>c.classList.remove('sel'));
  document.querySelector('.co[data-c="#f59e0b"]')?.classList.add('sel');
@@ -875,7 +1016,7 @@ function submitNote() {
  if(!date){showToast('اختر تاريخاً','#f59e0b');return;}
  if(!text){showToast('اكتب ملاحظتك','#f59e0b');return;}
  const id=Date.now().toString(36)+Math.random().toString(36).slice(2,5);
- const note={id,date,text,from_role:currentRole,to_role:selTo_val,color:selColor_val,ts:new Date().toISOString()};
+ const note={id,date,text,from_role:currentRole,to_role:selTo_val,color:selColor_val,shared:'no',ts:new Date().toISOString()};
  if(!notesMap[date])notesMap[date]=[];
  notesMap[date].push(note);
  allNotes.push(note);
@@ -886,6 +1027,24 @@ function submitNote() {
  fetch(GAS_URL+'?'+new URLSearchParams({action:'save',...note}),{mode:'no-cors'})
  .catch(()=>{});
  setTimeout(()=>loadNotes(true),2500);
+ }
+}
+
+/* ══ SHARE NOTE (CEO only) ═══════════════════════════ */
+function shareNote(date, id) {
+ if (!confirm('مشاركة هذه الملاحظة مع الجميع؟\nسيتمكن جميع الأقسام من رؤيتها.')) return;
+ // Update locally
+ const note = (notesMap[date]||[]).find(n=>n.id===id);
+ if(note) note.shared='yes';
+ const anote = allNotes.find(n=>n.id===id);
+ if(anote) anote.shared='yes';
+ renderCell(date);
+ renderDayNotes();
+ showToast('تمت المشاركة مع الجميع','#10b981');
+ // Update in Sheets
+ if(GAS_URL){
+   fetch(GAS_URL+'?'+new URLSearchParams({action:'share',id}),{mode:'no-cors'})
+     .catch(()=>{});
  }
 }
 
