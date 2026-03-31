@@ -2,6 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+CiAgPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNiIgZmlsbD0iIzBmMTcyYSIvPgogIDxyZWN0IHg9IjMiIHk9IjMiIHdpZHRoPSIyNiIgaGVpZ2h0PSI0IiByeD0iMiIgZmlsbD0iIzNEQkRBRCIvPgogIDxyZWN0IHg9IjMiIHk9IjEwIiB3aWR0aD0iMTYiIGhlaWdodD0iMyIgcng9IjEuNSIgZmlsbD0iIzRBNEE5QSIvPgogIDxyZWN0IHg9IjMiIHk9IjE2IiB3aWR0aD0iMjAiIGhlaWdodD0iMyIgcng9IjEuNSIgZmlsbD0iIzdCNTJBQiIvPgogIDxyZWN0IHg9IjMiIHk9IjIyIiB3aWR0aD0iMTMiIGhlaWdodD0iMyIgcng9IjEuNSIgZmlsbD0iIzNEQkRBRCIvPgogIDxjaXJjbGUgY3g9IjI2IiBjeT0iMjMuNSIgcj0iNSIgZmlsbD0iIzNEQkRBRCIvPgogIDxwYXRoIGQ9Ik0yMy41IDIzLjUgTDI1LjUgMjUuNSBMMjkgMjIiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMS41IiBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPC9zdmc+">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
 <title>تقويم أبكس كير 2026</title>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
@@ -701,6 +702,24 @@ function مشاركة_ملاحظة(p) {
 
 <script>
 /* ══ SAFE DOM HELPERS ════════════════════════════ */
+
+/* ══ JSONP WRITE — يرسل للشيت بدون مشاكل CORS ══ */
+function gasWrite(params, onDone) {
+ if (!GAS_URL) return;
+ const cb  = '__w_' + Date.now();
+ const sc  = document.createElement('script');
+ const timer = setTimeout(() => {
+  delete window[cb]; sc.remove();
+  if (onDone) onDone(false);
+ }, 12000);
+ window[cb] = (r) => {
+  clearTimeout(timer); delete window[cb]; sc.remove();
+  if (onDone) onDone(r && r.ok);
+ };
+ params.callback = cb;
+ sc.src = GAS_URL + '?' + new URLSearchParams(params).toString();
+ document.head.appendChild(sc);
+}
 const $e = id => document.getElementById(id);
 const $t = (id,v) => { const e=$e(id); if(e) e.textContent=v; };
 const $h = (id,v) => { const e=$e(id); if(e) e.innerHTML=v; };
@@ -1075,11 +1094,19 @@ function submitNote() {
  closeOv('ovAdd');
  showToast('تم الإرسال','#10b981');
  if(GAS_URL){
-  fetch(GAS_URL+'?'+new URLSearchParams({action:'save',...note}),{mode:'no-cors'})
-   .catch(()=>{});
-  setTimeout(()=>loadNotes(true),3000);
-  setTimeout(()=>{if(pendingIds.has(id))loadNotes(true);},8000);
-  setTimeout(()=>{if(pendingIds.has(id))loadNotes(true);},20000);
+  gasWrite({action:'save',...note}, ok => {
+   if(ok){
+    pendingIds.delete(id); // تأكيد — أزل من المعلقة
+    showToast('تم الحفظ في الشيت','#10b981');
+   } else {
+    // أعد المحاولة بعد 5 ثواني
+    setTimeout(()=>gasWrite({action:'save',...note}, ok2=>{
+     if(ok2) pendingIds.delete(id);
+    }), 5000);
+   }
+  });
+  // مزامنة للتأكد من الظهور للآخرين
+  setTimeout(()=>loadNotes(true), 4000);
  }
 }
 
@@ -1095,10 +1122,7 @@ function shareNote(date, id) {
  renderDayNotes();
  showToast('تمت المشاركة مع الجميع','#10b981');
  // Update in Sheets
- if(GAS_URL){
-   fetch(GAS_URL+'?'+new URLSearchParams({action:'share',id}),{mode:'no-cors'})
-     .catch(()=>{});
- }
+ if(GAS_URL){ gasWrite({action:'share', id}); }
 }
 
 /* ══ DELETE ══════════════════════════════════════════ */
@@ -1113,7 +1137,7 @@ function deleteNote(date,id) {
  renderDayNotes();
  renderInbox();
  updateInboxBadge();
- if(GAS_URL) fetch(GAS_URL+'?'+new URLSearchParams({action:'delete',id}),{mode:'no-cors'}).catch(()=>{});
+ if(GAS_URL) gasWrite({action:'delete', id});
  showToast('تم الحذف','#6b7280');
 }
 
