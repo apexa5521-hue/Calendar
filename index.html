@@ -751,10 +751,39 @@ const $h = (id,v) => { const e=$e(id); if(e) e.innerHTML=v; };
 const $s = (id,p,v) => { const e=$e(id); if(e) e.style[p]=v; };
 const $c = (id,cls,add) => { const e=$e(id); if(e) e.classList[add?'add':'remove'](cls); };
 
+/* ══ LOCAL STORAGE — الحفظ الدائم بين الجلسات ════════════════ */
+var LS_KEY = 'apx_notes_2026';
+
+function lsSave() {
+ try {
+  localStorage.setItem(LS_KEY, JSON.stringify(localNotes));
+ } catch(e) { console.warn('localStorage save failed', e); }
+}
+
+function lsLoad() {
+ try {
+  var raw = localStorage.getItem(LS_KEY);
+  if (raw) {
+   var parsed = JSON.parse(raw);
+   Object.keys(parsed).forEach(function(id) {
+    localNotes[id] = parsed[id];
+   });
+   console.log('[LS] loaded', Object.keys(localNotes).length, 'notes from localStorage');
+  }
+ } catch(e) { console.warn('localStorage load failed', e); }
+}
+
+function lsDelete(id) {
+ try {
+  delete localNotes[id];
+  lsSave();
+ } catch(e) {}
+}
+
 /* ══ CONFIG ══════════════════════════════════════════════════════
  ← ضع رابط Apps Script هنا بعد النشر
  ════════════════════════════════════════════════════════════ */
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbxy6U6GhH6JNQz_16kC2-VjovLndXDl6P98k4JIAyRks4SEy0-39wOEX2m-ZGIQUOyQ/exec';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbxGAACZtuxGY36Zxr8ANbi52dpmMrdIy9Xq6dVyKAEOTkjQJC0STSKeJpeu_2sN7CoR/exec';
 
 /* رقم سري لكل دور — غيّرها قبل الرفع */
 const PINS = {
@@ -822,10 +851,24 @@ function doLogin() {
  $t('tbUser', '['+rm.abbr+'] '+rm.n);
  // Adjust add button visibility
  if (!rm.canWrite) $s('btnAddNote','display','none');
- // Load notes then scroll to current month
- loadNotes();
+ // حمّل من localStorage أولاً (فوري) ثم من الشيت
+ lsLoad();
+ rebuildFromLocal(); // اعرض المحلية فوراً
+ loadNotes();       // ثم حدّث من الشيت
  // Scroll to current month after a short delay
  setTimeout(scrollToCurrentMonth, 400);
+}
+
+function rebuildFromLocal() {
+ notesMap = {};
+ allNotes  = Object.values(localNotes);
+ allNotes.forEach(function(n) {
+  if (!n.date) return;
+  if (!notesMap[n.date]) notesMap[n.date] = [];
+  notesMap[n.date].push(n);
+ });
+ renderAllCells();
+ updateInboxBadge();
 }
 
 function scrollToCurrentMonth() {
@@ -860,6 +903,7 @@ function logout() {
  document.querySelectorAll('.role-card').forEach(c=>c.classList.remove('selected'));
  selectedRoleEl=null;
  notesMap={};allNotes=[];localNotes={};pendingIds.clear();
+ try { localStorage.removeItem(LS_KEY); } catch(e) {}
 }
 
 /* ══ FETCH NOTES ═════════════════════════════════════ */
@@ -879,35 +923,28 @@ function loadNotes(silent) {
 }
 
 function processNotes(remoteNotes) {
- // فلترة حسب صلاحية المستخدم
- const visible = remoteNotes.filter(n => {
+ // فلترة حسب الصلاحية
+ var visible = remoteNotes.filter(function(n) {
   if (!n.date || !n.text) return false;
-  if (ROLE_META[currentRole]?.seesAll) return true;
-  if (n.from_role === currentRole)     return true;
-  if (n.to_role   === currentRole)     return true;
-  if (n.to_role   === 'all')           return true;
-  if (n.shared    === 'yes')           return true;
+  if (ROLE_META[currentRole] && ROLE_META[currentRole].seesAll) return true;
+  if (n.from_role === currentRole) return true;
+  if (n.to_role   === currentRole) return true;
+  if (n.to_role   === 'all')       return true;
+  if (n.shared    === 'yes')       return true;
   return false;
  });
 
- // أضف الملاحظات القادمة من الشيت لـ localNotes
- visible.forEach(n => {
+ // أضف ما جاء من الشيت لـ localNotes (دمج لا استبدال)
+ visible.forEach(function(n) {
   localNotes[n.id] = n;
-  pendingIds.delete(n.id); // وصلت للشيت — أزلها من المعلقة
+  pendingIds.delete(n.id); // مؤكد في الشيت
  });
 
- // الملاحظات النهائية = المحلية كلها (شيت + معلقة)
- const allLocal = Object.values(localNotes);
+ // احفظ التحديث في localStorage
+ lsSave();
 
- notesMap = {};
- allNotes  = allLocal;
- allLocal.forEach(n => {
-  if (!n.date) return;
-  if (!notesMap[n.date]) notesMap[n.date] = [];
-  notesMap[n.date].push(n);
- });
- renderAllCells();
- updateInboxBadge();
+ // أعد البناء من localNotes
+ rebuildFromLocal();
 }
 
 function hideLoad(msg) {
@@ -1108,6 +1145,7 @@ function submitNote() {
  const note={id,date,text,from_role:currentRole,to_role:selTo_val,color:selColor_val,shared:'no',ts:new Date().toISOString()};
  localNotes[id] = note; // احفظ محلياً — لن تختفي أبداً
  pendingIds.add(id);
+ lsSave(); // احفظ في localStorage فوراً
  if(!notesMap[date])notesMap[date]=[];
  notesMap[date].push(note);
  allNotes.push(note);
@@ -1159,7 +1197,7 @@ function deleteNote(date,id) {
  if(!notesMap[date].length)delete notesMap[date];
  }
  allNotes=allNotes.filter(n=>n.id!==id);
- delete localNotes[id];
+ lsDelete(id); // أزل من localStorage
  renderCell(date);
  renderDayNotes();
  renderInbox();
