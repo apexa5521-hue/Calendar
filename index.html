@@ -416,32 +416,33 @@ textarea.finput{resize:vertical;min-height:70px}
  <label class="flabel">كود Apps Script</label>
  <textarea class="finput" rows="10" readonly style="font-size:9px;direction:ltr;font-family:monospace">// ══════════════════════════════════════════════════════════════════════════
 // تقويم عيادات أبكس كير 2026 — Google Apps Script
-// ══════════════════════════════════════════════════════════════════════════
-// طريقة النشر:
-//   1. افتح Google Sheets جديد
-//   2. الإضافات ← Apps Script
-//   3. احذف الكود الموجود والصق هذا الكود كاملاً
-//   4. نشر ← نشر جديد ← تطبيق ويب
-//   5. التنفيذ بواسطة: أنا  |  من يمكنه الوصول: أي شخص
-//   6. انسخ الرابط وضعه في const GAS_URL في ملف index.html
+// Deploy: Web App | Execute as: Me | Who has access: Anyone
 // ══════════════════════════════════════════════════════════════════════════
 
-const اسم_الشيت = 'الملاحظات';
+const SHEET_NAME = 'الملاحظات';
 
-// ── نقطة الدخول الرئيسية ──────────────────────────────────────────────────
+// ── نقطة الدخول الرئيسية مع حماية كاملة من الأخطاء ──────────────────────
 function doGet(e) {
-  const p  = e.parameter;
-  const cb = p.callback; // JSONP لتجاوز CORS
+  // حماية: e أو e.parameter قد يكون undefined في بعض الحالات
+  const p  = (e &amp;&amp; e.parameter) ? e.parameter : {};
+  const cb = p.callback || '';
 
   let result;
-  if      (p.action === 'getAll') result = جلب_الملاحظات(p);
-  else if (p.action === 'save')   result = حفظ_ملاحظة(p);
-  else if (p.action === 'delete') result = حذف_ملاحظة(p);
-  else if (p.action === 'share')  result = مشاركة_ملاحظة(p);
-  else result = { error: 'إجراء غير معروف: ' + p.action };
+  try {
+    const action = p.action || '';
+    if      (action === 'getAll') result = getAllNotes(p);
+    else if (action === 'save')   result = saveNote(p);
+    else if (action === 'delete') result = deleteNote(p);
+    else if (action === 'share')  result = shareNote(p);
+    else if (action === 'ping')   result = { ok: true, msg: 'متصل', time: new Date().toISOString() };
+    else result = { ok: false, error: 'إجراء غير معروف: ' + action };
+  } catch (err) {
+    result = { ok: false, error: String(err) };
+  }
 
   const jsonStr = JSON.stringify(result);
 
+  // JSONP إذا طُلب callback
   if (cb) {
     return ContentService
       .createTextOutput(cb + '(' + jsonStr + ')')
@@ -453,161 +454,157 @@ function doGet(e) {
     .setMimeType(ContentService.MimeType.JSON);
 }
 
-// ── الحصول على شيت الملاحظات أو إنشاؤه ──────────────────────────────────
-function الشيت() {
+// ── الحصول على الشيت أو إنشاؤه ──────────────────────────────────────────
+function getSheet() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  let sheet = ss.getSheetByName(اسم_الشيت);
+  
+  // بحث بالاسم العربي أو الإنجليزي للتوافق مع القديم
+  let sheet = ss.getSheetByName(SHEET_NAME)
+           || ss.getSheetByName('Notes')
+           || ss.getSheetByName('CalendarEvents');
 
   if (!sheet) {
-    sheet = ss.insertSheet(اسم_الشيت);
-
-    // الأعمدة: المعرف | التاريخ | النص | المرسِل | المستقبِل | اللون | مشترك | الوقت
-    sheet.appendRow([
-      'المعرف',
-      'التاريخ',
-      'نص الملاحظة',
-      'المرسِل',
-      'المستقبِل',
-      'اللون',
-      'مشترك (للجميع)',
-      'وقت الإنشاء'
-    ]);
+    sheet = ss.insertSheet(SHEET_NAME);
+    sheet.appendRow(['id', 'date', 'text', 'from_role', 'to_role', 'color', 'shared', 'ts']);
     sheet.setFrozenRows(1);
-
-    // أحجام الأعمدة
-    sheet.setColumnWidth(1, 150);  // المعرف
-    sheet.setColumnWidth(2, 100);  // التاريخ
-    sheet.setColumnWidth(3, 350);  // النص
-    sheet.setColumnWidth(4, 150);  // المرسِل
-    sheet.setColumnWidth(5, 150);  // المستقبِل
-    sheet.setColumnWidth(6, 80);   // اللون
-    sheet.setColumnWidth(7, 120);  // مشترك
-    sheet.setColumnWidth(8, 180);  // الوقت
-
-    // تنسيق صف الرأس
-    const رأس = sheet.getRange(1, 1, 1, 8);
-    رأس.setBackground('#1e293b');
-    رأس.setFontColor('#ffffff');
-    رأس.setFontWeight('bold');
-    رأس.setHorizontalAlignment('center');
-
-    // ثبّت اتجاه الورقة للعربية
-    ss.setSpreadsheetLocale('ar');
+    
+    const r = sheet.getRange(1, 1, 1, 8);
+    r.setBackground('#1e293b');
+    r.setFontColor('#ffffff');
+    r.setFontWeight('bold');
+    sheet.setColumnWidths(1, 8, [150, 100, 320, 130, 130, 80, 80, 180]);
   }
-
   return sheet;
 }
 
-// ── قواعد الرؤية ──────────────────────────────────────────────────────────
-// المدير التنفيذي (ceo) : يرى كل الملاحظات بدون استثناء
-// أي دور آخر           : يرى فقط:
-//   1. الملاحظات التي أرسلها هو بنفسه
-//   2. الملاحظات الموجهة إليه تحديداً (to_role = دوره)
-//   3. الملاحظات العامة (to_role = 'all')
-//   4. الملاحظات التي تم تفعيل "مشترك" عليها (shared = 'yes')
-function جلب_الملاحظات(p) {
-  const مشاهد = p.viewer || 'general';
-  const sheet  = الشيت();
-  const rows   = sheet.getDataRange().getValues();
+// ── مساعد: إيجاد رقم العمود ─────────────────────────────────────────────
+function findCol(headers, names) {
+  for (const name of names) {
+    const idx = headers.indexOf(name.toLowerCase().trim());
+    if (idx &gt;= 0) return idx;
+  }
+  return -1;
+}
 
-  if (rows.length &lt;= 1) return { ok: true, notes: [] };
+// ── جلب الملاحظات مع فلترة الصلاحية ─────────────────────────────────────
+function getAllNotes(p) {
+  const viewer = p.viewer || 'general';
+  const sheet  = getSheet();
+  const data   = sheet.getDataRange().getValues();
 
-  const headers = rows[0].map(h =&gt; String(h).trim());
+  if (data.length &lt;= 1) return { ok: true, notes: [] };
 
-  const notes = rows.slice(1)
-    .filter(row =&gt; row[0])
-    .map(row =&gt; {
-      const obj = {};
-      headers.forEach((h, i) =&gt; obj[h] = String(row[i] || ''));
-      // نرجع بأسماء الحقول الإنجليزية للـ frontend
-      return {
-        id:        obj['المعرف']           || '',
-        date:      obj['التاريخ']           || '',
-        text:      obj['نص الملاحظة']      || '',
-        from_role: obj['المرسِل']           || '',
-        to_role:   obj['المستقبِل']         || '',
-        color:     obj['اللون']             || '#f59e0b',
-        shared:    obj['مشترك (للجميع)']   || 'no',
-        ts:        obj['وقت الإنشاء']       || '',
-      };
-    })
-    .filter(note =&gt; {
-      // المدير يرى الكل
-      if (مشاهد === 'ceo') return true;
-      // ملاحظات أرسلها هو
-      if (note.from_role === مشاهد) return true;
-      // ملاحظات موجهة له
-      if (note.to_role === مشاهد) return true;
-      // ملاحظات عامة للجميع
-      if (note.to_role === 'all') return true;
-      // ملاحظات تم مشاركتها
-      if (note.shared === 'yes') return true;
+  const headers = data[0].map(h =&gt; String(h).toLowerCase().trim());
+
+  // خريطة الأعمدة
+  const cols = {
+    id:        findCol(headers, ['id', 'المعرف']),
+    date:      findCol(headers, ['date', 'التاريخ']),
+    text:      findCol(headers, ['text', 'نص الملاحظة', 'نص']),
+    from_role: findCol(headers, ['from_role', 'المرسل', 'المرسِل']),
+    to_role:   findCol(headers, ['to_role', 'المستقبل', 'المستقبِل']),
+    color:     findCol(headers, ['color', 'اللون']),
+    shared:    findCol(headers, ['shared', 'مشترك (للجميع)', 'مشترك']),
+    ts:        findCol(headers, ['ts', 'وقت الإنشاء', 'timestamp']),
+  };
+
+  const get = (row, col) =&gt; col &gt;= 0 ? String(row[col] || '') : '';
+
+  const notes = data.slice(1)
+    .filter(row =&gt; get(row, cols.id))
+    .map(row =&gt; ({
+      id:        get(row, cols.id),
+      date:      get(row, cols.date),
+      text:      get(row, cols.text),
+      from_role: get(row, cols.from_role) || 'general',
+      to_role:   get(row, cols.to_role)   || 'all',
+      color:     get(row, cols.color)     || '#f59e0b',
+      shared:    get(row, cols.shared)    || 'no',
+      ts:        get(row, cols.ts),
+    }))
+    .filter(n =&gt; {
+      if (!n.date || !n.text) return false;
+      if (viewer === 'ceo')           return true;
+      if (n.from_role === viewer)     return true;
+      if (n.to_role   === viewer)     return true;
+      if (n.to_role   === 'all')      return true;
+      if (n.shared    === 'yes')      return true;
       return false;
     });
 
-  return { ok: true, notes };
+  return { ok: true, notes, count: notes.length };
 }
 
-// ── حفظ ملاحظة جديدة ─────────────────────────────────────────────────────
-function حفظ_ملاحظة(p) {
-  const sheet = الشيت();
+// ── حفظ ملاحظة جديدة ────────────────────────────────────────────────────
+function saveNote(p) {
+  if (!p.id || !p.date || !p.text) {
+    return { ok: false, error: 'حقول مطلوبة مفقودة: id, date, text' };
+  }
 
-  const id        = p.id        || String(Date.now());
-  const date      = p.date      || '';
-  const text      = p.text      || '';
-  const from_role = p.from_role || 'general';
-  const to_role   = p.to_role   || 'all';
-  const color     = p.color     || '#f59e0b';
-  const shared    = p.shared    || 'no';
-  const ts        = new Date().toLocaleString('ar-SA');
+  const sheet = getSheet();
+  const data  = sheet.getDataRange().getValues();
 
-  sheet.appendRow([id, date, text, from_role, to_role, color, shared, ts]);
+  // تحقق من عدم التكرار
+  for (let i = 1; i &lt; data.length; i++) {
+    if (String(data[i][0]) === String(p.id)) {
+      return { ok: true, msg: 'موجودة مسبقاً', id: p.id };
+    }
+  }
 
-  // تلوين الصف حسب الجهة المرسِلة
-  const ألوان_الأدوار = {
-    ceo:       '#fee2e2',
-    marketing: '#ede9fe',
-    hr:        '#dcfce7',
-    ops:       '#ffedd5',
-    quality:   '#e0f2fe',
-    general:   '#f3f4f6',
+  const ts = new Date().toLocaleString('ar-SA', { timeZone: 'Asia/Riyadh' });
+  sheet.appendRow([
+    p.id,
+    p.date,
+    p.text,
+    p.from_role || 'general',
+    p.to_role   || 'all',
+    p.color     || '#f59e0b',
+    p.shared    || 'no',
+    ts
+  ]);
+
+  // تلوين الصف حسب الجهة
+  const rowColors = {
+    ceo:'#fee2e2', marketing:'#ede9fe', hr:'#dcfce7',
+    ops:'#ffedd5', quality:'#e0f2fe', general:'#f8fafc'
   };
   const lastRow = sheet.getLastRow();
   sheet.getRange(lastRow, 1, 1, 8)
-    .setBackground(ألوان_الأدوار[from_role] || '#ffffff');
+    .setBackground(rowColors[p.from_role] || '#ffffff');
 
-  return { ok: true, id };
+  return { ok: true, id: p.id };
 }
 
-// ── حذف ملاحظة بالمعرف ───────────────────────────────────────────────────
-function حذف_ملاحظة(p) {
-  const sheet = الشيت();
-  const rows  = sheet.getDataRange().getValues();
-  const targetId = String(p.id || '');
+// ── حذف ملاحظة ──────────────────────────────────────────────────────────
+function deleteNote(p) {
+  if (!p.id) return { ok: false, error: 'id مطلوب' };
+  const sheet = getSheet();
+  const data  = sheet.getDataRange().getValues();
 
-  for (let i = rows.length - 1; i &gt;= 1; i--) {
-    if (String(rows[i][0]) === targetId) {
+  for (let i = data.length - 1; i &gt;= 1; i--) {
+    if (String(data[i][0]) === String(p.id)) {
       sheet.deleteRow(i + 1);
       return { ok: true };
     }
   }
-  return { ok: false, error: 'الملاحظة غير موجودة: ' + targetId };
+  return { ok: true, msg: 'لم تُعثر على الملاحظة' };
 }
 
-// ── مشاركة ملاحظة مع الجميع ──────────────────────────────────────────────
-function مشاركة_ملاحظة(p) {
-  const sheet = الشيت();
-  const rows  = sheet.getDataRange().getValues();
-  const targetId = String(p.id || '');
+// ── مشاركة ملاحظة مع الجميع ────────────────────────────────────────────
+function shareNote(p) {
+  if (!p.id) return { ok: false, error: 'id مطلوب' };
+  const sheet   = getSheet();
+  const data    = sheet.getDataRange().getValues();
+  const headers = data[0].map(h =&gt; String(h).toLowerCase().trim());
+  const sharedCol = findCol(headers, ['shared', 'مشترك (للجميع)', 'مشترك']);
 
-  for (let i = rows.length - 1; i &gt;= 1; i--) {
-    if (String(rows[i][0]) === targetId) {
-      // العمود 7 (فهرس 6) هو "مشترك"
-      sheet.getRange(i + 1, 7).setValue('yes');
+  for (let i = data.length - 1; i &gt;= 1; i--) {
+    if (String(data[i][0]) === String(p.id)) {
+      sheet.getRange(i + 1, sharedCol + 1).setValue('yes');
       return { ok: true };
     }
   }
-  return { ok: false, error: 'الملاحظة غير موجودة: ' + targetId };
+  return { ok: false, error: 'ملاحظة غير موجودة: ' + p.id };
 }
 </textarea>
  </div>
@@ -757,7 +754,7 @@ const $c = (id,cls,add) => { const e=$e(id); if(e) e.classList[add?'add':'remove
 /* ══ CONFIG ══════════════════════════════════════════════════════
  ← ضع رابط Apps Script هنا بعد النشر
  ════════════════════════════════════════════════════════════ */
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbxGAACZtuxGY36Zxr8ANbi52dpmMrdIy9Xq6dVyKAEOTkjQJC0STSKeJpeu_2sN7CoR/exec';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbxy6U6GhH6JNQz_16kC2-VjovLndXDl6P98k4JIAyRks4SEy0-39wOEX2m-ZGIQUOyQ/exec';
 
 /* رقم سري لكل دور — غيّرها قبل الرفع */
 const PINS = {
