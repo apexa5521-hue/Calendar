@@ -908,21 +908,33 @@ function logout() {
 
 /* ══ FETCH NOTES ═════════════════════════════════════ */
 function loadNotes(silent) {
- if (!GAS_URL) { hideLoad('لا يوجد رابط'); return; }
- if (!silent) $c('loadScreen','gone',false);
- gasRead({action:'getAll', viewer: currentRole}, d => {
+ if (!GAS_URL) { hideLoad(''); return; }
+ // إذا عندنا بيانات محلية، أخفِ شاشة التحميل فوراً ولا تُظهرها مجدداً
+ var hasLocal = Object.keys(localNotes).length > 0;
+ if (!silent && !hasLocal) $c('loadScreen','gone',false);
+ else hideLoad(''); // أخفِ فوراً
+
+ gasRead({action:'getAll', viewer: currentRole}, function(d) {
   if (d && d.ok) {
    processNotes(d.notes || []);
-   hideLoad('');
-   if (!silent) showToast('تم التحميل — '+(d.notes||[]).length+' ملاحظة','#10b981');
+   if (!silent) showToast('تمت المزامنة','#10b981');
   } else {
-   hideLoad('تعذر الاتصال');
    if (!silent) showToast('تعذر الاتصال بالشيت','#ef4444');
   }
  });
 }
 
 function processNotes(remoteNotes) {
+ var localCount  = Object.keys(localNotes).length;
+ var remoteCount = Array.isArray(remoteNotes) ? remoteNotes.length : 0;
+
+ // إذا الشيت رجع فارغاً ولدينا ملاحظات محلية → لا نلمس شيئاً
+ // (يعني الشيت لم يجد الملاحظات بعد أو اسم الشيت مختلف)
+ if (remoteCount === 0 && localCount > 0) {
+  console.log('[PROCESS] remote empty but local has', localCount, 'notes — keeping local');
+  return;
+ }
+
  // فلترة حسب الصلاحية
  var visible = remoteNotes.filter(function(n) {
   if (!n.date || !n.text) return false;
@@ -934,17 +946,16 @@ function processNotes(remoteNotes) {
   return false;
  });
 
- // أضف ما جاء من الشيت لـ localNotes (دمج لا استبدال)
+ // دمج: أضف ملاحظات الشيت للمحلية (لا استبدال)
  visible.forEach(function(n) {
   localNotes[n.id] = n;
-  pendingIds.delete(n.id); // مؤكد في الشيت
+  pendingIds.delete(n.id);
  });
 
- // احفظ التحديث في localStorage
+ // احفظ في localStorage وأعد البناء
  lsSave();
-
- // أعد البناء من localNotes
  rebuildFromLocal();
+ console.log('[PROCESS] merged', visible.length, 'remote +', Object.keys(localNotes).length, 'total local');
 }
 
 function hideLoad(msg) {
