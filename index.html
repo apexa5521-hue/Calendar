@@ -756,8 +756,14 @@ var LS_KEY = 'apx_notes_2026';
 
 function lsSave() {
  try {
-  localStorage.setItem(LS_KEY, JSON.stringify(localNotes));
- } catch(e) { console.warn('localStorage save failed', e); }
+  // احفظ كل localNotes (ليس فقط ما يراه الدور الحالي)
+  var toSave = {};
+  Object.keys(localNotes).forEach(function(id) {
+   toSave[id] = localNotes[id];
+  });
+  localStorage.setItem(LS_KEY, JSON.stringify(toSave));
+  console.log('[LS] saved', Object.keys(toSave).length, 'notes');
+ } catch(e) { console.warn('[LS] save failed:', e); }
 }
 
 function lsLoad() {
@@ -765,12 +771,18 @@ function lsLoad() {
   var raw = localStorage.getItem(LS_KEY);
   if (raw) {
    var parsed = JSON.parse(raw);
+   var count = 0;
    Object.keys(parsed).forEach(function(id) {
-    localNotes[id] = parsed[id];
+    if (parsed[id] && parsed[id].id && parsed[id].date && parsed[id].text) {
+     localNotes[id] = parsed[id];
+     count++;
+    }
    });
-   console.log('[LS] loaded', Object.keys(localNotes).length, 'notes from localStorage');
+   console.log('[LS] loaded', count, 'notes. role:', currentRole);
+  } else {
+   console.log('[LS] empty — no saved notes');
   }
- } catch(e) { console.warn('localStorage load failed', e); }
+ } catch(e) { console.warn('[LS] load failed:', e); }
 }
 
 function lsDelete(id) {
@@ -849,28 +861,36 @@ function doLogin() {
  $t('tbUser', '['+rm.abbr+'] '+rm.n);
  // Adjust add button visibility
  if (!rm.canWrite) $s('btnAddNote','display','none');
- // حمّل من localStorage أولاً (فوري) ثم من الشيت
+ // 1. حمّل من localStorage فوراً (بدون انتظار)
  lsLoad();
- rebuildFromLocal(); // اعرض المحلية فوراً
- loadNotes();       // ثم حدّث من الشيت
- // Scroll to current month after a short delay
- setTimeout(scrollToCurrentMonth, 400);
+ rebuildFromLocal();
+ hideLoad(''); // أخفِ شاشة التحميل دائماً بعد lsLoad
+ // 2. انتقل للشهر الحالي
+ setTimeout(scrollToCurrentMonth, 300);
+ // 3. مزامنة مع الشيت في الخلفية (بدون شاشة تحميل)
+ setTimeout(function() { syncFromSheet(); }, 800);
 }
 
 function rebuildFromLocal() {
  notesMap = {};
  var all     = Object.values(localNotes);
- // فلتر حسب صلاحية المستخدم الحالي
+ var roleObj = ROLE_META[currentRole];
+ var seesAll = roleObj && roleObj.seesAll === true;
+
  var visible = all.filter(function(n) {
   if (!n || !n.date || !n.text) return false;
-  if (!currentRole) return false; // لم يُسجَّل دخول بعد
-  if (ROLE_META[currentRole] && ROLE_META[currentRole].seesAll) return true;
-  if (n.from_role === currentRole) return true;
-  if (n.to_role   === currentRole) return true;
-  if (n.to_role   === 'all')       return true;
-  if (n.shared    === 'yes')       return true;
+  if (!currentRole) return false;
+  if (seesAll)                         return true;  // المدير يرى الكل
+  if (n.from_role === currentRole)     return true;  // ما أرسلته
+  if (n.to_role   === currentRole)     return true;  // ما وُجِّه إليّ
+  if (n.to_role   === 'all')           return true;  // عام
+  if (n.shared    === 'yes')           return true;  // مشترك
   return false;
  });
+
+ console.log('[REBUILD] role:', currentRole, '| seesAll:', seesAll,
+   '| total in local:', all.length, '| visible:', visible.length);
+
  allNotes = visible;
  visible.forEach(function(n) {
   if (!notesMap[n.date]) notesMap[n.date] = [];
@@ -918,23 +938,36 @@ function logout() {
 }
 
 /* ══ FETCH NOTES ═════════════════════════════════════ */
+function syncFromSheet() {
+ if (!GAS_URL) return;
+ console.log('[SYNC] fetching from sheet as:', currentRole);
+ gasRead({action:'getAll', viewer: currentRole}, function(d) {
+  if (d && d.ok) {
+   var count = d.notes ? d.notes.length : 0;
+   console.log('[SYNC] sheet returned', count, 'notes for role:', currentRole);
+   if (count > 0) {
+    processNotes(d.notes);
+   } else {
+    console.warn('[SYNC] sheet empty — check sheet name matches GAS code');
+   }
+  } else {
+   console.error('[SYNC] failed:', d);
+  }
+ });
+}
+
 function loadNotes(silent) {
- // أخفِ شاشة التحميل إذا عندنا بيانات محلية
- if (Object.keys(localNotes).length > 0) {
-  hideLoad('');
- } else if (!silent) {
+ // لا تُظهر شاشة تحميل إذا عندنا بيانات محلية
+ var hasLocal = Object.keys(localNotes).length > 0;
+ if (!hasLocal && !silent) {
   $c('loadScreen','gone',false);
  }
-
  if (!GAS_URL) { hideLoad(''); return; }
-
  gasRead({action:'getAll', viewer: currentRole}, function(d) {
-  if (d && d.ok && d.notes) {
+  hideLoad('');
+  if (d && d.ok && d.notes && d.notes.length > 0) {
    processNotes(d.notes);
-   if (!silent) showToast('تمت المزامنة — ' + d.notes.length + ' ملاحظة في الشيت','#10b981');
-  } else {
-   hideLoad('');
-   console.warn('[LOAD] no data from sheet');
+   if (!silent && !hasLocal) showToast('تم التحميل','#10b981');
   }
  });
 }
@@ -1197,15 +1230,18 @@ function submitNote() {
    color:     note.color,
    shared:    'no'
   };
+  console.log('[SUBMIT]', note.text.slice(0,25), 'to:', note.to_role, 'from:', note.from_role);
   function trySave(n) {
    gasWrite(sp, function(ok) {
     if (ok) {
      pendingIds.delete(id);
-     console.log('[SAVE] confirmed in sheet:', id);
+     console.log('[SAVE] OK → sheet, to:', sp.to_role);
     } else if (n < 3) {
-     setTimeout(function() { trySave(n+1); }, (n+1) * 5000);
+     console.warn('[SAVE] retry', n+1, 'of 3');
+     setTimeout(function() { trySave(n+1); }, (n+1) * 4000);
     } else {
-     console.warn('[SAVE] kept local only after', n, 'retries');
+     console.error('[SAVE] FAILED after 3 retries — local only');
+     showToast('تعذر الحفظ في الشيت — محفوظة محلياً','#ef4444');
     }
    });
   }
