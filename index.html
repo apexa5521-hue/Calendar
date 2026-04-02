@@ -781,7 +781,7 @@ function lsDelete(id) {
 }
 
 /* ══ CONFIG - ضع رابط Apps Script في GAS_URL أدناه ══ */
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbxCak44HTXlD3p9sJ-j_eEtXNRcSbeW0MpmyGYsBJ1cS3dfv1XIfGa1JrQv3Zew9imK/exec';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbxGAACZtuxGY36Zxr8ANbi52dpmMrdIy9Xq6dVyKAEOTkjQJC0STSKeJpeu_2sN7CoR/exec';
 
 /* رقم سري لكل دور — غيّرها قبل الرفع */
 const PINS = {
@@ -859,12 +859,21 @@ function doLogin() {
 
 function rebuildFromLocal() {
  notesMap = {};
- var all   = Object.values(localNotes);
- allNotes  = all;
- all.forEach(function(n) {
-  if (!n || !n.date) return;
+ var all     = Object.values(localNotes);
+ // فلتر حسب صلاحية المستخدم الحالي
+ var visible = all.filter(function(n) {
+  if (!n || !n.date || !n.text) return false;
+  if (!currentRole) return false; // لم يُسجَّل دخول بعد
+  if (ROLE_META[currentRole] && ROLE_META[currentRole].seesAll) return true;
+  if (n.from_role === currentRole) return true;
+  if (n.to_role   === currentRole) return true;
+  if (n.to_role   === 'all')       return true;
+  if (n.shared    === 'yes')       return true;
+  return false;
+ });
+ allNotes = visible;
+ visible.forEach(function(n) {
   if (!notesMap[n.date]) notesMap[n.date] = [];
-  // تجنب التكرار
   var exists = notesMap[n.date].some(function(x) { return x.id === n.id; });
   if (!exists) notesMap[n.date].push(n);
  });
@@ -903,8 +912,9 @@ function logout() {
  $e('pinField').value='';
  document.querySelectorAll('.role-card').forEach(c=>c.classList.remove('selected'));
  selectedRoleEl=null;
+ // امسح RAM فقط — localStorage يبقى للجلسة القادمة
  notesMap={};allNotes=[];localNotes={};pendingIds.clear();
- try { localStorage.removeItem(LS_KEY); } catch(e) {}
+ // لا نمسح localStorage حتى تظهر الملاحظات فور الدخول مرة أخرى
 }
 
 /* ══ FETCH NOTES ═════════════════════════════════════ */
@@ -931,8 +941,9 @@ function loadNotes(silent) {
 
 function processNotes(remoteNotes) {
  if (!remoteNotes || !Array.isArray(remoteNotes)) return;
+ console.log('[PROCESS] received from sheet:', remoteNotes.length, 'notes, local has:', Object.keys(localNotes).length);
 
- // أضف كل ملاحظة من الشيت إلى localNotes (دمج فقط، لا حذف)
+ // أضف كل ملاحظة من الشيت إلى localNotes (دمج فقط، لا حذف أبداً)
  remoteNotes.forEach(function(n) {
   if (n && n.id && n.date && n.text) {
    // فلتر الصلاحية
